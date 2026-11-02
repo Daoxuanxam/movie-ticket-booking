@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title th:text="${title}">Cinema</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #0a0a0a;
+            --white: #f5f5f0;
+            --gray: #1a1a1a;
+            --gray2: #2a2a2a;
+            --muted: #666;
+            --accent: #e8ff00;
+            --red: #ff2d2d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--black);
+            color: var(--white);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 300;
+            overflow-x: hidden;
+        }
+
+        /* NAVBAR */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.2rem 4rem;
+            border-bottom: 1px solid #1f1f1f;
+            background: rgba(10,10,10,0.85);
+            backdrop-filter: blur(12px);
+        }
+
+        .nav-brand {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.6rem;
+            letter-spacing: 3px;
+            color: var(--white);
+            text-decoration: none;
+        }
+
+        .nav-brand span { color: var(--accent); }
+
+        /* MENU ĐỘNG */
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-menu-link {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 0.8rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            transition: color 0.2s;
+        }
+
+        .nav-menu-link:hover { color: var(--accent); }
+
+        .nav-dropdown {
+            position: relative;
+        }
+
+        .nav-dropdown-toggle {
+            color: var(--white);
+            font-size: 0.8rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .nav-dropdown-toggle::after {
+            content: '▾';
+            font-size: 0.85rem;
+            color: var(--accent);
+        }
+
+        .nav-dropdown:hover .nav-dropdown-toggle { color: var(--accent); }
+
+        .dropdown-content {
+			display: none;
+			position: absolute;
+			top: 100%;
+            left: 0;
+            background: rgba(10,10,10,0.97);
+            border: 1px solid var(--gray2);
+            border-top: 2px solid var(--accent);
+            min-width: 200px;
+            z-index: 200;
+            padding: 0.5rem 0;
+        }
+
+        .nav-dropdown:hover .dropdown-content { display: block; }
+
+        .dropdown-content a {
+            display: block;
+            padding: 0.7rem 1.4rem;
+            color: var(--white);
+            text-decoration: none;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            border-left: 2px solid transparent;
+        }
+
+        .dropdown-content a:hover {
+            background: var(--gray);
+            color: var(--accent);
+            border-left-color: var(--accent);
+            padding-left: 1.8rem;
+        }
+
+        .nav-right { display: flex; align-items: center; gap: 1rem; }
+
+        .nav-user {
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .btn-nav {
+            padding: 0.5rem 1.4rem;
+            border: 1px solid var(--white);
+            background: transparent;
+            color: var(--white);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.8rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-nav:hover { background: var(--white); color: var(--black); }
+
+        .btn-nav-accent {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-nav-accent:hover { background: var(--accent); color: var(--black); }
+
+        /* HERO */
+		.hero {
+		    min-height: 100vh;
+		    display: flex;
+		    flex-direction: column;
+		    justify-content: flex-end;
+		    padding: 100px 4rem 6rem;
+		    position: relative;
+		    overflow: hidden;
+		}
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 70% 50%, rgba(232,255,0,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 80%, rgba(255,45,45,0.06) 0%, transparent 50%);
+        }
+
+        .hero-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        .hero-tag {
+            display: inline-block;
+            font-size: 0.85rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 0.3rem 0.8rem;
+            margin-bottom: 2rem;
+            width: fit-content;
+            animation: fadeUp 0.8s ease both;
+        }
+
+        .hero-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: clamp(5rem, 12vw, 11rem);
+            line-height: 1.15;
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+            animation: fadeUp 0.8s 0.1s ease both;
+        }
+
+        .hero-title span { color: var(--accent); }
+
+        .hero-sub {
+            font-size: 1rem;
+            color: var(--muted);
+            max-width: 400px;
+            line-height: 1.7;
+            margin-bottom: 3rem;
+            animation: fadeUp 0.8s 0.2s ease both;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            animation: fadeUp 0.8s 0.3s ease both;
+        }
+
+        .btn-primary-hero {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 1rem 2.5rem;
+            background: var(--accent);
+            color: var(--black);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary-hero:hover {
+            background: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-hero {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 1rem 2.5rem;
+            border: 1px solid var(--gray2);
+            color: var(--white);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-outline-hero:hover {
+            border-color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        .hero-scroll {
+            position: absolute;
+            right: 4rem;
+            bottom: 6rem;
+            writing-mode: vertical-rl;
+            font-size: 0.85rem;
+            letter-spacing: 3px;
+            color: var(--muted);
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: fadeUp 1s 0.5s ease both;
+        }
+
+        .hero-scroll::after {
+            content: '';
+            width: 1px;
+            height: 60px;
+            background: var(--muted);
+        }
+
+        /* TICKER */
+        .ticker {
+            border-top: 1px solid var(--gray2);
+            border-bottom: 1px solid var(--gray2);
+            padding: 0.9rem 0;
+            overflow: hidden;
+            background: var(--gray);
+        }
+
+        .ticker-inner {
+            display: flex;
+            gap: 4rem;
+            animation: ticker 20s linear infinite;
+            white-space: nowrap;
+        }
+
+        .ticker-item {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1rem;
+            letter-spacing: 3px;
+            color: var(--muted);
+        }
+
+        .ticker-item span { color: var(--accent); margin-right: 0.5rem; }
+
+        /* FEATURES */
+        .features { padding: 8rem 4rem; }
+
+        .section-label {
+            font-size: 0.85rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            letter-spacing: 2px;
+            margin-bottom: 4rem;
+        }
+
+		.features-scroll-wrap {
+		            position: relative;
+		        }
+
+		        .features-grid {
+		            display: flex;
+		            gap: 1.2rem;
+		            overflow-x: auto;
+		            scroll-behavior: smooth;
+		            padding-bottom: 1rem;
+		            scrollbar-width: none;
+		        }
+		        .features-grid::-webkit-scrollbar { display: none; }
+
+		        .feature-card {
+		            background: var(--gray);
+		            border: 1px solid var(--gray2);
+		            padding: 2.5rem 2rem;
+		            transition: all 0.3s ease;
+		            text-decoration: none;
+		            color: inherit;
+		            display: block;
+		            flex: 0 0 280px;
+		            position: relative;
+		            overflow: hidden;
+		        }
+
+		        .feature-card::before {
+		            content: '';
+		            position: absolute;
+		            top: 0; left: 0; right: 0;
+		            height: 3px;
+		            background: var(--accent);
+		            transform: scaleX(0);
+		            transform-origin: left;
+		            transition: transform 0.3s ease;
+		        }
+
+		        .feature-card:hover {
+		            background: #1f1f1f;
+		            border-color: var(--accent);
+		            transform: translateY(-6px);
+		            box-shadow: 0 16px 32px rgba(0,0,0,0.5);
+		        }
+		        .feature-card:hover::before { transform: scaleX(1); }
+		        .feature-card:hover .feature-arrow { transform: translate(4px, -4px); }
+
+		        .feature-icon {
+		            font-size: 2.2rem;
+		            margin-bottom: 1.5rem;
+		            display: inline-flex;
+		            align-items: center;
+		            justify-content: center;
+		            width: 56px;
+		            height: 56px;
+		            background: rgba(232,255,0,0.06);
+		            border: 1px solid var(--gray2);
+		            border-radius: 50%;
+		        }
+
+		        .feature-title {
+		            font-family: 'Oswald', sans-serif;
+		            font-size: 1.3rem;
+		            letter-spacing: 1.5px;
+		            margin-bottom: 0.8rem;
+		        }
+
+		        .feature-desc {
+		            font-size: 0.85rem;
+		            color: var(--muted);
+		            line-height: 1.7;
+		            margin-bottom: 2rem;
+		            min-height: 2.8rem;
+		        }
+
+		        .feature-arrow {
+		            font-size: 1.2rem;
+		            color: var(--accent);
+		            transition: transform 0.2s;
+		            display: inline-block;
+		        }
+
+		        .scroll-btn {
+		            position: absolute;
+		            top: 50%;
+		            transform: translateY(-50%);
+		            width: 44px; height: 44px;
+		            background: var(--black);
+		            border: 1px solid var(--gray2);
+		            color: var(--white);
+		            font-size: 1.1rem;
+		            cursor: pointer;
+		            z-index: 10;
+		            display: flex;
+		            align-items: center;
+		            justify-content: center;
+		            transition: all 0.2s;
+		        }
+		        .scroll-btn:hover { border-color: var(--accent); color: var(--accent); }
+		        .scroll-btn-left { left: -22px; }
+		        .scroll-btn-right { right: -22px; }
+
+		        @media (max-width: 768px) {
+		            .scroll-btn { display: none; }
+		        }
+
+        /* NOW SHOWING */
+        .now-showing { padding: 0 4rem 8rem; }
+
+        .now-showing-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+        }
+
+        .movies-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: var(--gray2);
+            border: 1px solid var(--gray2);
+        }
+
+        .movie-card {
+            background: var(--black);
+            aspect-ratio: 2/3;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .movie-poster {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .movie-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            background: var(--gray);
+        }
+
+        .movie-overlay {
+            position: relative;
+            z-index: 2;
+            padding: 2rem;
+            background: linear-gradient(transparent, rgba(0,0,0,0.95));
+        }
+
+        .movie-rated {
+            display: inline-block;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            border: 1px solid var(--red);
+            color: var(--red);
+            padding: 0.2rem 0.5rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .movie-name {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+            margin-bottom: 0.4rem;
+        }
+
+        .movie-meta { font-size: 0.75rem; color: var(--muted); letter-spacing: 1px; }
+
+        .movie-btn {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1.2rem;
+            background: var(--accent);
+            color: var(--black);
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .movie-btn:hover { background: var(--white); }
+
+        /* STATS */
+        .stats {
+            border-top: 1px solid var(--gray2);
+            border-bottom: 1px solid var(--gray2);
+            padding: 5rem 4rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: var(--gray2);
+        }
+
+        .stat-item {
+            background: var(--black);
+            padding: 3rem 4rem;
+            text-align: center;
+        }
+
+        .stat-num {
+            font-family: 'Oswald', sans-serif;
+            font-size: 4rem;
+            letter-spacing: 3px;
+            color: var(--accent);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-top: 0.5rem;
+        }
+
+        /* FOOTER */
+        footer {
+            padding: 4rem;
+            border-top: 1px solid var(--gray2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-brand {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 3px;
+        }
+
+        .footer-brand span { color: var(--accent); }
+        .footer-copy { font-size: 0.75rem; color: var(--muted); letter-spacing: 1px; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes ticker {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        @media (max-width: 768px) {
+            nav { padding: 1rem 1.5rem; }
+            .nav-menu { display: none; }
+            .hero { padding: 90px 1.5rem 5rem; }
+            .features { padding: 5rem 1.5rem; }
+            .features-grid { grid-template-columns: 1fr 1fr; }
+            .now-showing { padding: 0 1.5rem 5rem; }
+            .movies-grid { grid-template-columns: 1fr; }
+            .stats { grid-template-columns: 1fr; padding: 3rem 1.5rem; }
+            .hero-scroll { display: none; }
+            footer { padding: 2rem 1.5rem; flex-direction: column; gap: 1rem; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+    <a class="nav-brand" href="/">CINE<span>MA</span></a>
+
+    <!-- MENU ĐỘNG TỪ DATABASE -->
+    <div class="nav-menu" th:if="${menus != null and !menus.isEmpty()}">
+        <th:block th:each="menu : ${menus}">
+
+            <!-- Menu không có con: link thường -->
+            <a th:if="${#lists.isEmpty(menu.children)}"
+               th:href="${menu.menuUrl}"
+               th:text="${menu.menuName}"
+               class="nav-menu-link">
+            </a>
+
+            <!-- Menu có con: dropdown -->
+            <div th:if="${!#lists.isEmpty(menu.children)}" class="nav-dropdown">
+                <span th:text="${menu.menuName}" class="nav-dropdown-toggle"></span>
+				<div class="dropdown-content">
+				     <a th:each="child : ${menu.children}"
+				        th:if="${child.menuName != 'Đăng nhập' and child.menuName != 'Đăng ký'}"
+				        th:href="${child.menuName == 'Đặt vé' ? '/movies' : child.menuUrl}"
+				        th:text="${child.menuName}">
+				     </a>
+				 </div>
+            </div>
+
+        </th:block>
+    </div>
+
+    <div class="nav-right">
+
+        <!-- Chưa đăng nhập -->
+        <div sec:authorize="isAnonymous()" style="display:flex;gap:1rem;">
+            <a href="/login" class="btn-nav">Đăng nhập</a>
+            <a href="/register" class="btn-nav btn-nav-accent">Đăng ký</a>
+        </div>
+
+        <!-- Đã đăng nhập - ADMIN -->
+        <div sec:authorize="hasRole('ADMIN')" style="display:flex;align-items:center;gap:1rem;">
+            <span class="nav-user" sec:authentication="name"></span>
+            <a href="/admin" class="btn-nav" style="border-color:#ff2d2d;color:#ff2d2d;">⚙ Admin</a>
+            <a href="/logout" class="btn-nav btn-nav-accent">Đăng xuất</a>
+        </div>
+
+        <!-- Đã đăng nhập - CUSTOMER -->
+        <div sec:authorize="hasRole('CUSTOMER')" style="display:flex;align-items:center;gap:1rem;">
+            <span class="nav-user" sec:authentication="name"></span>
+            <a href="/profile" class="btn-nav">Tài khoản</a>
+            <a href="/logout" class="btn-nav btn-nav-accent">Đăng xuất</a>
+        </div>
+
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-tag">🎬 Now Showing 2026</div>
+    <h1 class="hero-title">
+        ĐẶT VÉ<br>
+        XEM <span>PHIM</span>
+    </h1>
+    <p class="hero-sub" th:text="${welcomeMessage}">Khám phá hàng trăm bộ phim hay đang chiếu. Đặt vé nhanh, thanh toán tiện lợi.</p>
+    <div class="hero-actions">
+        <a href="/movies" class="btn-primary-hero">▶ Đặt Vé Ngay</a>
+    </div>
+    <div class="hero-scroll">Scroll</div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+    <div class="ticker-inner">
+        <span class="ticker-item"><span>★</span> PHIM MỚI MỖI TUẦN</span>
+        <span class="ticker-item"><span>★</span> ĐẶT VÉ ONLINE 24/7</span>
+        <span class="ticker-item"><span>★</span> THANH TOÁN AN TOÀN</span>
+        <span class="ticker-item"><span>★</span> GHẾ VIP SANG TRỌNG</span>
+        <span class="ticker-item"><span>★</span> PHIM MỚI MỖI TUẦN</span>
+        <span class="ticker-item"><span>★</span> ĐẶT VÉ ONLINE 24/7</span>
+        <span class="ticker-item"><span>★</span> THANH TOÁN AN TOÀN</span>
+        <span class="ticker-item"><span>★</span> GHẾ VIP SANG TRỌNG</span>
+    </div>
+</div>
+
+<!-- CINEMAS -->
+<section class="features">
+    <p class="section-label">Hệ thống rạp</p>
+    <h2 class="section-title">RẠP ĐANG CHIẾU</h2>
+    <div class="features-scroll-wrap">
+        <button class="scroll-btn scroll-btn-left" onclick="scrollCinemas(-1)">‹</button>
+        <div class="features-grid" id="cinema-scroll">
+            <a th:each="c, iter : ${cinemas}"
+               th:href="@{/movies(cinemaId=${c.id})}"
+               class="feature-card">
+                <span class="feature-icon"
+                      th:text="${#lists.toList({'🏢','🎟️','🍿','📍','🎪','🎭','🎦','🛎️'}).get(iter.index % 8)}">🏢</span>
+                <div class="feature-title" th:text="${c.name}">Tên rạp</div>
+                <p class="feature-desc" th:text="${c.address + ', ' + c.city}">Địa chỉ</p>
+                <span class="feature-arrow">↗</span>
+            </a>
+        </div>
+        <button class="scroll-btn scroll-btn-right" onclick="scrollCinemas(1)">›</button>
+    </div>
+</section>
+<!-- NOW SHOWING -->
+<section class="now-showing">
+    <div class="now-showing-header">
+        <div>
+            <p class="section-label">Đang chiếu</p>
+            <h2 class="section-title">PHIM NỔI BẬT</h2>
+        </div>
+        <a href="/movies" class="btn-outline-hero" style="margin-bottom:1rem;">Xem tất cả →</a>
+    </div>
+    <div class="movies-grid">
+
+        <!-- Nếu có phim trong DB -->
+        <th:block th:if="${nowShowing != null and !nowShowing.isEmpty()}">
+            <div th:each="movie : ${nowShowing}" class="movie-card">
+                <img th:if="${movie.posterUrl != null and !movie.posterUrl.isEmpty()}"
+                     th:src="${movie.posterUrl}"
+                     th:alt="${movie.title}"
+                     class="movie-poster"/>
+                <div th:unless="${movie.posterUrl != null and !movie.posterUrl.isEmpty()}"
+                     class="movie-placeholder">🎬</div>
+                <div class="movie-overlay">
+                    <span th:if="${movie.rated != null}" class="movie-rated" th:text="${movie.rated}">C16</span>
+                    <div class="movie-name" th:text="${movie.title}">TÊN PHIM</div>
+                    <div class="movie-meta">
+                        <span th:text="${movie.duration + ' phút'}">120 phút</span>
+                    </div>
+                    <a th:href="@{/booking(movieId=${movie.id})}" class="movie-btn">Đặt vé</a>
+                </div>
+            </div>
+        </th:block>
+
+        <!-- Fallback nếu chưa có phim trong DB -->
+        <th:block th:if="${nowShowing == null or nowShowing.isEmpty()}">
+            <div class="movie-card">
+                <div class="movie-placeholder">🎬</div>
+                <div class="movie-overlay">
+                    <span class="movie-rated">C16</span>
+                    <div class="movie-name">TÊN PHIM 1</div>
+                    <div class="movie-meta">120 phút · Hành động</div>
+                    <a href="/movies" class="movie-btn">Đặt vé</a>
+                </div>
+            </div>
+            <div class="movie-card">
+                <div class="movie-placeholder">🎥</div>
+                <div class="movie-overlay">
+                    <span class="movie-rated">P</span>
+                    <div class="movie-name">TÊN PHIM 2</div>
+                    <div class="movie-meta">95 phút · Hoạt hình</div>
+                    <a href="/movies" class="movie-btn">Đặt vé</a>
+                </div>
+            </div>
+            <div class="movie-card">
+                <div class="movie-placeholder">🍿</div>
+                <div class="movie-overlay">
+                    <span class="movie-rated">C18</span>
+                    <div class="movie-name">TÊN PHIM 3</div>
+                    <div class="movie-meta">140 phút · Kinh dị</div>
+                    <a href="/movies" class="movie-btn">Đặt vé</a>
+                </div>
+            </div>
+        </th:block>
+
+    </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+    <div class="stat-item">
+        <span class="stat-num">50+</span>
+        <div class="stat-label">Phim đang chiếu</div>
+    </div>
+    <div class="stat-item">
+        <span class="stat-num">10K+</span>
+        <div class="stat-label">Vé đã đặt</div>
+    </div>
+    <div class="stat-item">
+        <span class="stat-num">24/7</span>
+        <div class="stat-label">Hỗ trợ trực tuyến</div>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-brand">CINE<span>MA</span></div>
+    <div class="footer-copy">© 2026 Cinema Booking System. All rights reserved.</div>
+</footer>
+
+<script>
+    function scrollCinemas(dir) {
+        const el = document.getElementById('cinema-scroll');
+        el.scrollBy({ left: dir * 300, behavior: 'smooth' });
+    }
+</script>
+</body>
+</html>

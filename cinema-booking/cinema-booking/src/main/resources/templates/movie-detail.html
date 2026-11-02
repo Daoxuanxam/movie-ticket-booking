@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${movie.title + ' - Cinema'}">Chi tiết phim</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0a0a0a; color: #f5f5f0; font-family: 'DM Sans', sans-serif; }
+
+        nav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1.2rem 4rem; border-bottom: 1px solid #1a1a1a;
+            position: sticky; top: 0; background: #0a0a0a; z-index: 100;
+        }
+        .logo { font-family: 'Oswald', sans-serif; font-size: 1.6rem; letter-spacing: 3px; text-decoration: none; color: #f5f5f0; }
+        .logo span { color: #e8ff00; }
+        .nav-links { display: flex; gap: 1rem; }
+        .btn-nav {
+            padding: 0.6rem 1.4rem; border: 1px solid #333; background: transparent;
+            color: #f5f5f0; font-size: 0.8rem; letter-spacing: 1.5px;
+            text-transform: uppercase; text-decoration: none; transition: all 0.2s;
+        }
+        .btn-nav:hover { border-color: #e8ff00; color: #e8ff00; }
+        .btn-nav.filled { background: #e8ff00; color: #0a0a0a; border-color: #e8ff00; }
+
+        /* HERO */
+        .detail-hero {
+            display: grid; grid-template-columns: 280px 1fr;
+            gap: 0; min-height: 520px;
+        }
+        .poster-col {
+            position: relative; background: #111;
+        }
+        .poster-col img { width: 100%; height: 100%; object-fit: cover; }
+        .poster-placeholder {
+            width: 100%; height: 100%; min-height: 420px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 1rem; color: #333; background: #111;
+        }
+        .poster-placeholder span { font-size: 5rem; }
+
+        .info-col {
+            padding: 3rem; background: #0f0f0f;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .breadcrumb {
+            font-size: 0.85rem; letter-spacing: 2px; color: #555;
+            margin-bottom: 1.5rem; text-transform: uppercase;
+        }
+        .breadcrumb a { color: #555; text-decoration: none; }
+        .breadcrumb a:hover { color: #e8ff00; }
+
+        .status-badge {
+            display: inline-block; padding: 4px 12px;
+            font-size: 0.85rem; letter-spacing: 2px; font-weight: 600;
+            text-transform: uppercase; margin-bottom: 1.2rem;
+        }
+        .badge-showing { background: #e8ff00; color: #0a0a0a; }
+        .badge-coming  { border: 1px solid #555; color: #888; }
+        .badge-ended   { border: 1px solid #333; color: #555; }
+
+        .movie-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 3.5rem; letter-spacing: 2px; line-height: 1;
+            margin-bottom: 1.5rem;
+        }
+
+        .meta-row {
+            display: flex; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;
+        }
+        .meta-label {
+            font-size: 0.85rem; letter-spacing: 2px; color: #555;
+            text-transform: uppercase; margin-bottom: 0.3rem;
+        }
+        .meta-value { font-size: 0.9rem; font-weight: 500; }
+        .rated-pill {
+            display: inline-block; padding: 2px 10px;
+            border: 1px solid #555; font-size: 0.8rem; font-weight: 700;
+            color: #f5f5f0;
+        }
+
+        .description {
+            font-size: 0.9rem; line-height: 1.8; color: #aaa;
+            max-width: 600px; margin-bottom: 2rem;
+        }
+
+        .actors-section { margin-bottom: 2rem; }
+        .actors-label { font-size: 0.85rem; letter-spacing: 2px; color: #555; text-transform: uppercase; margin-bottom: 0.5rem; }
+        .actors-value { font-size: 0.85rem; color: #ccc; line-height: 1.6; }
+
+        .action-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .btn-book {
+            padding: 1rem 2.5rem; background: #e8ff00; color: #0a0a0a;
+            border: none; font-family: 'DM Sans', sans-serif; font-weight: 600;
+            font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase;
+            cursor: pointer; text-decoration: none; transition: all 0.2s;
+        }
+        .btn-book:hover { background: #f5f5f0; }
+        .btn-trailer {
+            padding: 1rem 2rem; background: transparent; color: #f5f5f0;
+            border: 1px solid #333; font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase;
+            cursor: pointer; text-decoration: none; transition: all 0.2s;
+        }
+        .btn-trailer:hover { border-color: #f5f5f0; }
+
+        /* RELATED */
+        .related-section { padding: 3rem 4rem; border-top: 1px solid #1a1a1a; }
+        .section-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 2rem;
+        }
+        .related-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1px; background: #1a1a1a;
+        }
+        .related-card {
+            background: #0a0a0a; text-decoration: none; color: inherit;
+            display: block; transition: opacity 0.2s;
+        }
+        .related-card:hover { opacity: 0.8; }
+        .related-poster {
+            aspect-ratio: 2/3; background: #111; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .related-poster img { width: 100%; height: 100%; object-fit: cover; }
+        .related-poster .icon { font-size: 2.5rem; color: #333; }
+        .related-info { padding: 0.75rem; background: #111; }
+        .related-title { font-size: 0.8rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .related-meta { font-size: 0.85rem; color: #555; margin-top: 0.2rem; }
+    </style>
+</head>
+<body>
+
+	<nav>
+	    <a href="/" class="logo">CINE<span>MA</span></a>
+	    <div class="nav-links">
+	        <a href="/movies" class="btn-nav">Phim</a>
+	        <div sec:authorize="hasRole('ADMIN')" style="display:flex;align-items:center;gap:1rem;">
+	            <a href="/admin" class="btn-nav" style="border-color:#ff2d2d;color:#ff2d2d;">⚙ Admin</a>
+	            <a href="/logout" class="btn-nav filled">Đăng xuất</a>
+	        </div>
+	        <div sec:authorize="hasRole('CUSTOMER')" style="display:flex;align-items:center;gap:1rem;">
+	            <a href="/profile" class="btn-nav filled">Tài khoản</a>
+	            <a href="/logout" class="btn-nav filled">Đăng xuất</a>
+	        </div>
+	        <div sec:authorize="isAnonymous()" style="display:flex;gap:1rem;">
+	            <a href="/login" class="btn-nav">Đăng nhập</a>
+	            <a href="/register" class="btn-nav filled">Đăng ký</a>
+	        </div>
+	    </div>
+	</nav>
+
+<!-- DETAIL HERO -->
+<div class="detail-hero">
+    <!-- POSTER -->
+    <div class="poster-col">
+        <img th:if="${movie.posterUrl != null and !movie.posterUrl.isEmpty()}"
+             th:src="${movie.posterUrl}" th:alt="${movie.title}"/>
+        <div th:unless="${movie.posterUrl != null and !movie.posterUrl.isEmpty()}"
+             class="poster-placeholder">
+            <span>🎬</span>
+        </div>
+    </div>
+
+    <!-- INFO -->
+    <div class="info-col">
+        <div class="breadcrumb">
+            <a href="/">Trang chủ</a> / <a href="/movies">Phim</a> / <span th:text="${movie.title}"></span>
+        </div>
+
+        <span th:class="${'status-badge ' +
+            (movie.status.name() == 'now_showing' ? 'badge-showing' :
+            (movie.status.name() == 'coming_soon' ? 'badge-coming' : 'badge-ended'))}"
+              th:text="${movie.status.name() == 'now_showing' ? '● Đang chiếu' :
+                        (movie.status.name() == 'coming_soon' ? '○ Sắp chiếu' : '— Đã kết thúc')}">
+        </span>
+
+        <h1 class="movie-title" th:text="${movie.title}">Tên phim</h1>
+
+        <div class="meta-row">
+            <div class="meta-item">
+                <div class="meta-label">Thời lượng</div>
+                <div class="meta-value" th:text="${movie.duration + ' phút'}">120 phút</div>
+            </div>
+            <div class="meta-item" th:if="${movie.releaseDate != null}">
+                <div class="meta-label">Khởi chiếu</div>
+                <div class="meta-value" th:text="${movie.releaseDate}"></div>
+            </div>
+            <div class="meta-item" th:if="${movie.rated != null}">
+                <div class="meta-label">Giới hạn</div>
+                <div class="meta-value"><span class="rated-pill" th:text="${movie.rated}"></span></div>
+            </div>
+        </div>
+
+        <p class="description"
+           th:text="${movie.description != null ? movie.description : 'Chưa có mô tả cho bộ phim này.'}">
+        </p>
+
+        <div class="actors-section" th:if="${movie.actors != null}">
+            <div class="actors-label">Diễn viên</div>
+            <div class="actors-value" th:text="${movie.actors}"></div>
+        </div>
+
+        <div class="action-row">
+            <a th:if="${movie.status.name() == 'now_showing'}"
+               th:href="@{/booking(movieId=${movie.id})}"
+               class="btn-book">🎫 Đặt vé ngay</a>
+            <a th:if="${movie.trailerUrl != null and !movie.trailerUrl.isEmpty()}"
+               th:href="${movie.trailerUrl}" target="_blank" class="btn-trailer">▶ Xem trailer</a>
+            <a href="/movies" class="btn-trailer">← Quay lại</a>
+        </div>
+    </div>
+</div>
+
+<!-- PHIM LIÊN QUAN -->
+<div class="related-section" th:if="${!related.isEmpty()}">
+    <div class="section-title">PHIM LIÊN QUAN</div>
+    <div class="related-grid">
+        <a th:each="r : ${related}"
+           th:href="@{/movies/{id}(id=${r.id})}"
+           class="related-card">
+            <div class="related-poster">
+                <img th:if="${r.posterUrl != null and !r.posterUrl.isEmpty()}"
+                     th:src="${r.posterUrl}" th:alt="${r.title}"/>
+                <span th:unless="${r.posterUrl != null and !r.posterUrl.isEmpty()}" class="icon">🎬</span>
+            </div>
+            <div class="related-info">
+                <div class="related-title" th:text="${r.title}"></div>
+                <div class="related-meta" th:text="${r.duration + ' phút'}"></div>
+            </div>
+        </a>
+    </div>
+</div>
+
+</body>
+</html>

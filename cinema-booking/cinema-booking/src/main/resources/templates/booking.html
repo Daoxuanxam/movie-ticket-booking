@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đặt Vé | Cinema</title>
+
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0a0a0a;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        /* ─── TOPBAR ─── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.1rem 2.5rem;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .logo { font-size: 1.2rem; font-weight: 900; letter-spacing: 3px; color: #fff; text-decoration: none; }
+        .logo span { color: #d4f700; }
+        .btn-back {
+            font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #555;
+            text-transform: uppercase; cursor: pointer; display: flex;
+            align-items: center; gap: 6px; background: none; border: none;
+            transition: color .2s; text-decoration: none;
+        }
+        .btn-back:hover { color: #d4f700; }
+
+        /* ─── STEP BAR ─── */
+        .step-bar {
+            display: flex; align-items: center; justify-content: center;
+            gap: 0; padding: 1.5rem 2rem; border-bottom: 1px solid #1a1a1a;
+        }
+        .step {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 10px; font-weight: 700; letter-spacing: 2px;
+            text-transform: uppercase; color: #333; padding: 0 1.5rem;
+        }
+        .step.active { color: #d4f700; }
+        .step.done { color: #555; }
+        .step-num {
+            width: 22px; height: 22px; border-radius: 50%; border: 1px solid #333;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 700; flex-shrink: 0;
+        }
+        .step.active .step-num { border-color: #d4f700; background: #d4f700; color: #0a0a0a; }
+        .step.done .step-num { background: #1a1a1a; color: #555; border-color: #333; }
+        .step-line { width: 40px; height: 1px; background: #1e1e1e; }
+
+        /* ─── PAGE / SECTIONS ─── */
+        .page { display: none; padding: 2.5rem; max-width: 1100px; margin: 0 auto; }
+        .page.active { display: block; }
+
+        /* ─── SECTION LABEL ─── */
+        .section-label {
+            font-size: 10px; font-weight: 700; letter-spacing: 3px;
+            text-transform: uppercase; color: #d4f700; margin-bottom: 1rem;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .section-label::before { content: ''; width: 20px; height: 1px; background: #d4f700; display: inline-block; }
+
+        /* ─── MOVIE INFO BAR ─── */
+        .movie-info-bar {
+            background: #111; border: 1px solid #1e1e1e; border-radius: 4px;
+            padding: 1.2rem 1.5rem; display: flex; align-items: center;
+            gap: 1.5rem; margin-bottom: 2rem;
+        }
+        .movie-poster-sm {
+            width: 52px; height: 72px; background: #1a1a1a; border-radius: 3px;
+            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .movie-poster-sm img { width: 100%; height: 100%; object-fit: cover; }
+        .movie-name { font-size: 1.1rem; font-weight: 900; text-transform: uppercase; letter-spacing: -.5px; margin-bottom: 4px; }
+        .movie-meta { font-size: 11px; color: #555; letter-spacing: .5px; }
+        .movie-meta span { color: #d4f700; margin: 0 4px; }
+
+        /* ─── CINEMA LIST ─── */
+        .cinema-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 2rem; }
+        .cinema-btn {
+            background: #111; border: 1px solid #1e1e1e; border-radius: 3px;
+            padding: 14px 18px; cursor: pointer; transition: all .2s;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .cinema-btn:hover { border-color: #333; }
+        .cinema-btn.sel { border-color: #d4f700; background: #111; }
+        .cinema-btn.sel .cinema-name { color: #d4f700; }
+        .cinema-name { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+        .cinema-addr { font-size: 11px; color: #444; letter-spacing: .5px; }
+        .cinema-city {
+            font-size: 9px; font-weight: 700; letter-spacing: 2px; color: #555;
+            background: #1a1a1a; padding: 3px 10px; border-radius: 2px; text-transform: uppercase;
+        }
+        .cinema-btn.sel .cinema-city { background: #d4f700; color: #0a0a0a; }
+
+        /* ─── DATE SELECTOR ─── */
+        .dates-row { display: flex; gap: 8px; margin-bottom: 2rem; flex-wrap: wrap; }
+        .date-btn {
+            background: #111; border: 1px solid #1e1e1e; border-radius: 3px;
+            padding: 10px 18px; cursor: pointer; transition: all .2s; text-align: center; min-width: 68px;
+        }
+        .date-btn:hover { border-color: #333; }
+        .date-btn.sel { border-color: #d4f700; background: #d4f700; }
+        .date-btn .d-day { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: #555; text-transform: uppercase; }
+        .date-btn .d-num { font-size: 1.3rem; font-weight: 900; color: #fff; line-height: 1.1; }
+        .date-btn.sel .d-day,
+        .date-btn.sel .d-num { color: #0a0a0a; }
+
+        /* ─── EMPTY STATE ─── */
+        .empty-state {
+            text-align: center; padding: 2.5rem 1rem; color: #2e2e2e;
+            font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+        }
+        .empty-state i { font-size: 2rem; display: block; margin-bottom: .8rem; }
+
+        /* ─── TIME GRID ─── */
+        .times-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-bottom: 2rem; }
+        .time-btn {
+            background: #111; border: 1px solid #1e1e1e; border-radius: 3px;
+            padding: 12px 14px; cursor: pointer; transition: all .2s; text-align: left;
+        }
+        .time-btn:hover { border-color: #333; }
+        .time-btn.sel { border-color: #d4f700; }
+        .time-main { font-size: 1.1rem; font-weight: 900; color: #fff; margin-bottom: 3px; }
+        .time-btn.sel .time-main { color: #d4f700; }
+        .time-hall { font-size: 10px; color: #444; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
+        .time-format {
+            font-size: 9px; font-weight: 700; letter-spacing: 2px; color: #555;
+            background: #1a1a1a; padding: 2px 7px; border-radius: 2px; display: inline-block;
+            text-transform: uppercase;
+        }
+        .time-btn.sel .time-format { background: #d4f700; color: #0a0a0a; }
+
+        /* ─── SEAT MAP ─── */
+        .screen-label {
+            text-align: center; font-size: 10px; font-weight: 700;
+            letter-spacing: 4px; color: #d4f700; text-transform: uppercase; margin-bottom: 6px;
+        }
+        .screen-bar { height: 4px; background: #d4f700; border-radius: 2px; margin: 0 auto 2.5rem; width: 55%; opacity: .5; }
+        .seats-grid { display: flex; flex-direction: column; align-items: center; gap: 7px; margin-bottom: 2rem; }
+        .seat-row { display: flex; align-items: center; gap: 6px; }
+        .row-label { font-size: 10px; font-weight: 700; color: #2e2e2e; width: 16px; text-align: center; flex-shrink: 0; }
+        .seat {
+            width: 30px; height: 26px; border-radius: 3px 3px 2px 2px;
+            cursor: pointer; transition: all .15s; border: 1px solid transparent; flex-shrink: 0;
+        }
+        .seat.avail { background: #1a1a1a; border-color: #2a2a2a; }
+        .seat.avail:hover { background: #d4f700; border-color: #d4f700; }
+        .seat.sel { background: #d4f700; border-color: #d4f700; }
+        .seat.vip { background: #1a1a1a; border-color: #EF9F27; }
+        .seat.vip:hover { background: #EF9F27; border-color: #EF9F27; }
+        .seat.vip.sel { background: #EF9F27; border-color: #EF9F27; }
+        .seat.couple { background: #1a1a1a; border-color: #a855f7; }
+        .seat.couple:hover { background: #a855f7; border-color: #a855f7; }
+        .seat.couple.sel { background: #a855f7; border-color: #a855f7; }
+        .seat.taken { background: #111; border-color: #1a1a1a; cursor: not-allowed; opacity: .35; }
+        .seat.gap { visibility: hidden; pointer-events: none; }
+        .seat-legend { display: flex; gap: 2rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #555; letter-spacing: 1px; }
+        .legend-dot { width: 18px; height: 15px; border-radius: 2px; }
+        .ld-avail { background: #1a1a1a; border: 1px solid #2a2a2a; }
+        .ld-sel { background: #d4f700; }
+        .ld-vip { background: #1a1a1a; border: 1px solid #EF9F27; }
+        .ld-couple { background: #1a1a1a; border: 1px solid #a855f7; }
+        .ld-taken { background: #111; border: 1px solid #1a1a1a; opacity: .4; }
+
+        /* ─── ORDER PANEL ─── */
+        .order-panel {
+            background: #111; border: 1px solid #1e1e1e; border-radius: 4px; padding: 1.4rem 1.5rem;
+        }
+        .order-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 7px 0; font-size: 13px; border-bottom: 1px solid #151515;
+        }
+        .order-row:last-of-type { border-bottom: none; }
+        .order-label { color: #555; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; }
+        .order-val { color: #fff; font-weight: 700; font-size: 13px; text-align: right; max-width: 60%; }
+        .order-total { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; margin-top: .5rem; border-top: 1px solid #222; }
+        .total-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #555; }
+        .total-val { font-size: 1.5rem; font-weight: 900; color: #d4f700; }
+        .seats-selected-display { display: flex; flex-wrap: wrap; gap: 6px; margin-top: .5rem; }
+        .seat-tag {
+            background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 2px;
+            padding: 3px 8px; font-size: 11px; font-weight: 700; color: #d4f700; letter-spacing: 1px;
+        }
+
+        /* ─── CONFIRM BOX ─── */
+        .confirm-box {
+            background: #111; border: 1px solid #1e1e1e; border-radius: 4px;
+            padding: 1.5rem; margin-bottom: 1.5rem;
+        }
+        .confirm-title {
+            font-size: 10px; font-weight: 700; letter-spacing: 3px;
+            text-transform: uppercase; color: #d4f700; margin-bottom: 1.2rem;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .confirm-title::before { content: ''; width: 16px; height: 1px; background: #d4f700; display: inline-block; }
+        .form-row { margin-bottom: 1rem; }
+        .form-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #444; margin-bottom: 7px; display: block; }
+        .form-input {
+            width: 100%; background: #0a0a0a; border: 1px solid #1e1e1e; color: #fff;
+            padding: 11px 14px; font-size: 13px; border-radius: 3px; outline: none;
+            font-family: 'Segoe UI', sans-serif; transition: border-color .2s;
+        }
+        .form-input:focus { border-color: #d4f700; }
+        .form-input::placeholder { color: #333; }
+        .form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+        /* ─── PAYMENT OPTIONS ─── */
+        .payment-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: .5rem; }
+        .pay-opt {
+            background: #0a0a0a; border: 1px solid #1e1e1e; border-radius: 3px;
+            padding: 12px 8px; cursor: pointer; transition: all .2s; text-align: center;
+        }
+        .pay-opt:hover { border-color: #333; }
+        .pay-opt.sel { border-color: #d4f700; }
+        .pay-icon { font-size: 22px; margin-bottom: 5px; }
+        .pay-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: #555; text-transform: uppercase; }
+        .pay-opt.sel .pay-label { color: #d4f700; }
+
+        /* ─── BUTTONS ─── */
+        .btn-next {
+            width: 100%; background: #d4f700; color: #0a0a0a; border: none;
+            padding: 14px; font-size: 12px; font-weight: 900; letter-spacing: 3px;
+            text-transform: uppercase; cursor: pointer; border-radius: 3px;
+            transition: all .2s; margin-top: 1rem; font-family: 'Segoe UI', sans-serif;
+        }
+        .btn-next:hover { background: #c9e600; }
+        .btn-next:disabled { background: #1e1e1e; color: #2e2e2e; cursor: not-allowed; }
+
+        /* ─── PAYMENT LAYOUT ─── */
+        .pay-layout { display: grid; grid-template-columns: 1fr 340px; gap: 2rem; }
+
+        /* ─── SUCCESS ─── */
+        .success-screen { text-align: center; padding: 3rem 1rem; }
+        .success-icon {
+            width: 68px; height: 68px; background: #d4f700; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem; font-size: 30px; color: #0a0a0a;
+        }
+        .success-title { font-size: 2.2rem; font-weight: 900; text-transform: uppercase; letter-spacing: -1.5px; margin-bottom: .5rem; }
+        .success-title span { color: #d4f700; }
+        .success-sub { font-size: 13px; color: #555; letter-spacing: .5px; margin-bottom: 2rem; }
+
+        /* ─── TICKET CARD ─── */
+        .ticket-card {
+            background: #111; border: 1px solid #1e1e1e; border-radius: 4px;
+            padding: 1.5rem; max-width: 420px; margin: 0 auto; text-align: left;
+        }
+        .ticket-top {
+            display: flex; align-items: center; gap: 14px;
+            margin-bottom: 1.2rem; padding-bottom: 1.2rem; border-bottom: 1px dashed #1e1e1e;
+        }
+        .ticket-movie { font-size: 1.1rem; font-weight: 900; text-transform: uppercase; letter-spacing: -.5px; margin-bottom: 4px; }
+        .ticket-meta-sm { font-size: 11px; color: #555; letter-spacing: .5px; }
+        .ticket-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .td-item .td-lbl { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #444; margin-bottom: 4px; }
+        .td-item .td-val { font-size: 13px; font-weight: 700; color: #fff; }
+        .td-item .td-val.yellow { color: #d4f700; }
+        .ticket-bottom {
+            margin-top: 1.2rem; padding-top: 1.2rem; border-top: 1px dashed #1e1e1e;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .booking-code { font-size: .95rem; font-weight: 900; color: #d4f700; letter-spacing: 3px; }
+        .booking-code-lbl { font-size: 9px; color: #444; letter-spacing: 2px; text-transform: uppercase; margin-top: 3px; }
+        .qr-box {
+            width: 60px; height: 60px; background: #1a1a1a; border: 1px solid #222;
+            border-radius: 3px; display: flex; align-items: center; justify-content: center;
+            font-size: 9px; color: #333; letter-spacing: 1px; text-transform: uppercase;
+            text-align: center; line-height: 1.4;
+        }
+
+        /* ─── FOOTER STRIP ─── */
+        .page-footer { text-align: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #1a1a1a; }
+        .page-footer p { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #222; }
+
+        /* ─── LOADING ─── */
+        .loading { text-align:center; padding: 1.5rem; color: #333; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 900px) { .pay-layout { grid-template-columns: 1fr; } }
+        @media (max-width: 640px) {
+            .page { padding: 1.5rem 1.2rem; }
+            .topbar { padding: 1rem 1.2rem; }
+            .step { padding: 0 .8rem; }
+            .step-label { display: none; }
+            .form-2col { grid-template-columns: 1fr; }
+            .payment-opts { grid-template-columns: 1fr 1fr 1fr; }
+            .times-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+            .seat { width: 24px; height: 22px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+    <a th:href="@{/}" class="logo">CINE<span>MA</span></a>
+    <button class="btn-back" onclick="goBack()">
+        <i class="bi bi-arrow-left"></i> Quay lại
+    </button>
+</div>
+
+<!-- STEP BAR -->
+<div class="step-bar">
+    <div class="step active" id="s1">
+        <div class="step-num">1</div>
+        <span class="step-label">Suất chiếu</span>
+    </div>
+    <div class="step-line" id="line1"></div>
+    <div class="step" id="s2">
+        <div class="step-num">2</div>
+        <span class="step-label">Chọn ghế</span>
+    </div>
+    <div class="step-line" id="line2"></div>
+    <div class="step" id="s3">
+        <div class="step-num">3</div>
+        <span class="step-label">Thanh toán</span>
+    </div>
+    <div class="step-line" id="line3"></div>
+    <div class="step" id="s4">
+        <div class="step-num">4</div>
+        <span class="step-label">Xác nhận</span>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PAGE 1 — CHỌN RẠP + NGÀY + SUẤT CHIẾU -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page active" id="page1">
+
+    <!-- Movie info -->
+    <div class="movie-info-bar">
+        <div class="movie-poster-sm">
+            <img th:if="${movie.posterUrl != null and !#strings.isEmpty(movie.posterUrl)}"
+                 th:src="${movie.posterUrl}" th:alt="${movie.title}"
+                 onerror="this.style.display='none';this.parentNode.innerHTML='<i class=\'bi bi-film\' style=\'font-size:24px;color:#333\'></i>'">
+            <i th:unless="${movie.posterUrl != null and !#strings.isEmpty(movie.posterUrl)}"
+               class="bi bi-film" style="font-size:24px;color:#333"></i>
+        </div>
+        <div>
+            <div class="movie-name" th:text="${movie.title}">Tên phim</div>
+            <div class="movie-meta">
+                <span th:text="${movie.duration != null ? movie.duration + ' phút' : ''}"></span>
+                <span th:if="${movie.duration != null}">•</span>
+                <span th:text="${movie.rated}"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHỌN RẠP -->
+    <div class="section-label">Chọn rạp</div>
+    <div class="cinema-list" id="cinema-list">
+        <div th:each="c : ${cinemas}"
+             class="cinema-btn"
+             th:data-id="${c.id}"
+             th:data-name="${c.name}"
+             onclick="selectCinema(this)">
+            <div>
+                <div class="cinema-name" th:text="${c.name}">Tên rạp</div>
+                <div class="cinema-addr" th:text="${c.address}">Địa chỉ</div>
+            </div>
+            <div class="cinema-city" th:text="${c.city}">Thành phố</div>
+        </div>
+    </div>
+
+    <!-- CHỌN NGÀY -->
+    <div id="section-dates" style="display:none">
+        <div class="section-label">Chọn ngày</div>
+        <div class="dates-row" id="dates-row">
+            <div class="loading"><i class="bi bi-hourglass-split me-2"></i>Đang tải...</div>
+        </div>
+    </div>
+
+    <!-- CHỌN SUẤT CHIẾU -->
+    <div id="section-times" style="display:none">
+        <div class="section-label">Chọn suất chiếu</div>
+        <div class="times-grid" id="times-grid"></div>
+    </div>
+
+    <button class="btn-next" id="btn-step1" disabled onclick="goStep(2)">
+        TIẾP THEO <i class="bi bi-arrow-right ms-2"></i>
+    </button>
+
+    <div class="page-footer">
+        <p><i class="bi bi-shield-check me-2"></i>Thanh toán bảo mật SSL &nbsp;|&nbsp; Hỗ trợ 24/7</p>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PAGE 2 — CHỌN GHẾ                      -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page" id="page2">
+
+    <div class="movie-info-bar" style="justify-content: space-between;">
+        <div style="display:flex;align-items:center;gap:1.2rem">
+            <div class="movie-poster-sm">
+                <img th:if="${movie.posterUrl != null and !#strings.isEmpty(movie.posterUrl)}"
+                     th:src="${movie.posterUrl}" th:alt="${movie.title}"
+                     onerror="this.style.display='none'">
+                <i th:unless="${movie.posterUrl != null and !#strings.isEmpty(movie.posterUrl)}"
+                   class="bi bi-film" style="font-size:22px;color:#333"></i>
+            </div>
+            <div>
+                <div class="movie-name" th:text="${movie.title}">Tên phim</div>
+                <div class="movie-meta" id="chosen-info-bar">—</div>
+            </div>
+        </div>
+        <div style="text-align:right">
+            <div id="chosen-hall-display" style="font-size:12px;font-weight:900;color:#d4f700;letter-spacing:2px;text-transform:uppercase"></div>
+            <div id="chosen-fmt-display" style="font-size:10px;color:#444;letter-spacing:1.5px;text-transform:uppercase"></div>
+        </div>
+    </div>
+
+    <div class="screen-label">MÀN HÌNH</div>
+    <div class="screen-bar"></div>
+
+    <div class="seats-grid" id="seat-map"></div>
+
+    <div class="seat-legend">
+        <div class="legend-item"><div class="legend-dot ld-avail"></div>Trống</div>
+        <div class="legend-item"><div class="legend-dot ld-sel"></div>Đã chọn</div>
+        <div class="legend-item"><div class="legend-dot ld-vip"></div>VIP</div>
+        <div class="legend-item"><div class="legend-dot ld-couple"></div>Couple</div>
+        <div class="legend-item"><div class="legend-dot ld-taken"></div>Đã bán</div>
+    </div>
+
+    <div class="order-panel">
+        <div class="section-label" style="margin-bottom:.8rem">Ghế đã chọn (tối đa 6)</div>
+        <div id="selected-seats-display" style="color:#2e2e2e;font-size:12px;letter-spacing:1px;">Chưa chọn ghế nào</div>
+        <div class="order-total" style="margin-top:1rem">
+            <div class="total-label">Tạm tính</div>
+            <div class="total-val" id="seat-subtotal">0đ</div>
+        </div>
+    </div>
+
+    <button class="btn-next" id="btn-step2" disabled onclick="goStep(3)">
+        TIẾP THEO <i class="bi bi-arrow-right ms-2"></i>
+    </button>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PAGE 3 — THANH TOÁN                    -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page" id="page3">
+    <div class="pay-layout">
+
+        <div>
+            <div class="confirm-box">
+                <div class="confirm-title"><i class="bi bi-person-fill me-2"></i>Thông tin khách hàng</div>
+                <div class="form-2col">
+                    <div class="form-row">
+                        <label class="form-label">Họ và tên</label>
+                        <input class="form-input" type="text" id="inp-name" placeholder="Nguyễn Văn A">
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Số điện thoại</label>
+                        <input class="form-input" type="tel" id="inp-phone" placeholder="0912 345 678">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">Email nhận vé</label>
+                    <input class="form-input" type="email" id="inp-email" placeholder="email@example.com">
+                </div>
+            </div>
+
+            <!-- MÃ GIẢM GIÁ -->
+            <div class="confirm-box">
+                <div class="confirm-title"><i class="bi bi-ticket-perforated-fill me-2"></i>Mã giảm giá</div>
+                <div style="display:flex; gap:10px;">
+                    <input class="form-input" type="text" id="inp-discount" placeholder="Nhập mã giảm giá" style="flex:1; text-transform:uppercase;">
+                    <button class="btn-next" style="width:auto; margin-top:0; padding:11px 24px;" onclick="applyDiscount()">ÁP DỤNG</button>
+                </div>
+                <div id="discount-msg" style="margin-top:8px; font-size:11px; letter-spacing:1px;"></div>
+            </div>
+
+            <div class="confirm-box">
+                <div class="confirm-title"><i class="bi bi-credit-card-fill me-2"></i>Phương thức thanh toán</div>
+                <div class="payment-opts">
+                    <div class="pay-opt sel" data-pay="momo" onclick="selPayMethod(this)">
+                        <div class="pay-icon">💳</div>
+                        <div class="pay-label">MoMo</div>
+                    </div>
+                    <div class="pay-opt" data-pay="bank" onclick="selPayMethod(this)">
+                        <div class="pay-icon"><i class="bi bi-bank2" style="font-size:22px;color:#378ADD"></i></div>
+                        <div class="pay-label">Ngân hàng</div>
+                    </div>
+                    <div class="pay-opt" data-pay="zalopay" onclick="selPayMethod(this)">
+                        <div class="pay-icon">📱</div>
+                        <div class="pay-label">ZaloPay</div>
+                    </div>
+                    <div class="pay-opt" data-pay="vnpay" onclick="selPayMethod(this)">
+                        <div class="pay-icon"><i class="bi bi-qr-code-scan" style="font-size:22px;color:#d4f700"></i></div>
+                        <div class="pay-label">VNPay</div>
+                    </div>
+                    <div class="pay-opt" data-pay="credit_card" onclick="selPayMethod(this)">
+                        <div class="pay-icon"><i class="bi bi-credit-card" style="font-size:22px;color:#378ADD"></i></div>
+                        <div class="pay-label">Visa/MC</div>
+                    </div>
+                    <div class="pay-opt" data-pay="cash" onclick="selPayMethod(this)">
+                        <div class="pay-icon"><i class="bi bi-cash" style="font-size:22px;color:#a3d44e"></i></div>
+                        <div class="pay-label">Tiền mặt</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: ORDER SUMMARY -->
+        <div>
+            <div class="order-panel">
+                <div class="section-label" style="margin-bottom:1rem">Đơn hàng</div>
+                <div class="order-row">
+                    <span class="order-label">Phim</span>
+                    <span class="order-val" th:text="${movie.title}">Tên phim</span>
+                </div>
+                <div class="order-row">
+                    <span class="order-label">Rạp</span>
+                    <span class="order-val" id="sum-cinema">—</span>
+                </div>
+                <div class="order-row">
+                    <span class="order-label">Ngày chiếu</span>
+                    <span class="order-val" id="sum-date">—</span>
+                </div>
+                <div class="order-row">
+                    <span class="order-label">Suất chiếu</span>
+                    <span class="order-val" id="sum-time">—</span>
+                </div>
+                <div class="order-row">
+                    <span class="order-label">Phòng chiếu</span>
+                    <span class="order-val" id="sum-hall">—</span>
+                </div>
+                <div class="order-row">
+                    <span class="order-label">Ghế</span>
+                    <span class="order-val" id="sum-seats">—</span>
+                </div>
+                <div class="order-row">
+                    <span class="order-label">Số lượng vé</span>
+                    <span class="order-val" id="sum-qty">—</span>
+                </div>
+                <div class="order-row" id="discount-row" style="display:none">
+                    <span class="order-label">Giảm giá</span>
+                    <span class="order-val" id="sum-discount" style="color:#d4f700">—</span>
+                </div>
+                <div class="order-total">
+                    <div class="total-label">Tổng cộng</div>
+                    <div class="total-val" id="sum-total">0đ</div>
+                </div>
+            </div>
+
+            <button class="btn-next" id="btn-step3" onclick="processPayment()" style="margin-top:12px">
+                <i class="bi bi-lock-fill me-2"></i>XÁC NHẬN THANH TOÁN
+            </button>
+            <div style="text-align:center;margin-top:10px;font-size:10px;color:#2a2a2a;letter-spacing:1.5px;text-transform:uppercase">
+                <i class="bi bi-shield-check me-1"></i>Thanh toán bảo mật SSL 256-bit
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PAGE 4 — ĐẶT VÉ THÀNH CÔNG            -->
+<!-- ═══════════════════════════════════════ -->
+<div class="page" id="page4">
+    <div class="success-screen">
+        <div class="success-icon"><i class="bi bi-check-lg"></i></div>
+        <div class="success-title">ĐẶT VÉ<br><span>THÀNH CÔNG</span></div>
+        <div class="success-sub" id="success-sub-text">Vé đã xác nhận. Kiểm tra email để nhận e-ticket.</div>
+
+        <div class="ticket-card">
+            <div class="ticket-top">
+                <div class="movie-poster-sm">
+                    <img th:if="${movie.posterUrl != null and !#strings.isEmpty(movie.posterUrl)}"
+                         th:src="${movie.posterUrl}" th:alt="${movie.title}"
+                         onerror="this.style.display='none'">
+                    <i th:unless="${movie.posterUrl != null and !#strings.isEmpty(movie.posterUrl)}"
+                       class="bi bi-film" style="font-size:22px;color:#333"></i>
+                </div>
+                <div>
+                    <div class="ticket-movie" th:text="${movie.title}">Tên phim</div>
+                    <div class="ticket-meta-sm" th:text="${movie.rated}">T18</div>
+                </div>
+            </div>
+
+            <div class="ticket-detail-grid">
+                <div class="td-item">
+                    <div class="td-lbl">Rạp</div>
+                    <div class="td-val" id="tk-cinema">—</div>
+                </div>
+                <div class="td-item">
+                    <div class="td-lbl">Ngày chiếu</div>
+                    <div class="td-val" id="tk-date">—</div>
+                </div>
+                <div class="td-item">
+                    <div class="td-lbl">Giờ chiếu</div>
+                    <div class="td-val yellow" id="tk-time">—</div>
+                </div>
+                <div class="td-item">
+                    <div class="td-lbl">Phòng chiếu</div>
+                    <div class="td-val" id="tk-hall">—</div>
+                </div>
+                <div class="td-item">
+                    <div class="td-lbl">Ghế ngồi</div>
+                    <div class="td-val yellow" id="tk-seats">—</div>
+                </div>
+                <div class="td-item">
+                    <div class="td-lbl">Tổng tiền</div>
+                    <div class="td-val yellow" id="tk-total">—</div>
+                </div>
+                <div class="td-item" style="grid-column:1/-1">
+                    <div class="td-lbl">Tên khách</div>
+                    <div class="td-val" id="tk-name">—</div>
+                </div>
+            </div>
+
+            <div class="ticket-bottom">
+                <div>
+                    <div class="booking-code" id="tk-code">CIN-XXXXXX</div>
+                    <div class="booking-code-lbl">Mã đặt vé</div>
+                </div>
+                <div class="qr-box">QR<br>CODE</div>
+            </div>
+        </div>
+
+		<div style="display:flex;gap:10px;justify-content:center;margin-top:1.5rem;flex-wrap:wrap">
+		    <a th:href="@{/movies}" class="btn-next" style="max-width:240px;margin-top:0;display:inline-flex;align-items:center;justify-content:center;text-decoration:none">
+		        ĐẶT VÉ TIẾP THEO →
+		    </a>
+		    <a th:href="@{/}" style="display:inline-flex;align-items:center;gap:8px;background:#111;border:1px solid #222;color:#555;padding:14px 24px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-radius:3px;text-decoration:none;margin-top:0">
+		        <i class="bi bi-house"></i> Trang chủ
+		    </a>
+		</div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- JAVASCRIPT                                          -->
+<!-- ═══════════════════════════════════════════════════ -->
+<script th:inline="javascript">
+    /* ── CONSTANTS FROM SERVER ── */
+    const MOVIE_ID = /*[[${movie.id}]]*/ 0;
+
+    /* ── STATE ── */
+    let selCinema  = null;   // {id, name}
+    let selDate    = null;   // {iso:'2026-06-15', display:'Thứ 2, 15/06'}
+    let selTime    = null;   // {id, time, hallName, hallType, language}
+    let selSeats   = [];
+    let seatPrices = {standard: 85000, vip: 120000, couple: 200000};
+    let appliedDiscount = { code: null, amount: 0 };
+
+    /* ── FORMAT CURRENCY ── */
+    function fmt(n){ return n.toLocaleString('vi-VN') + 'đ'; }
+
+    /* ── FORMAT DATE DISPLAY ── */
+    function formatDateDisplay(isoStr) {
+        const d = new Date(isoStr + 'T00:00:00');
+        const days = ['CN','T2','T3','T4','T5','T6','T7'];
+        const dayName = days[d.getDay()];
+        const dd = String(d.getDate()).padStart(2,'0');
+        const mm = String(d.getMonth()+1).padStart(2,'0');
+        const yyyy = d.getFullYear();
+        return { short: dayName, num: dd, full: `${dayName}, ${dd}/${mm}/${yyyy}` };
+    }
+
+    /* ── SELECT CINEMA ── */
+    function selectCinema(el) {
+        const cinemaId   = parseInt(el.dataset.id);
+        const cinemaName = el.dataset.name;
+
+        document.querySelectorAll('.cinema-btn').forEach(b => b.classList.remove('sel'));
+        el.classList.add('sel');
+
+        selCinema = { id: cinemaId, name: cinemaName };
+        selDate   = null;
+        selTime   = null;
+
+        document.getElementById('section-times').style.display = 'none';
+        document.getElementById('section-dates').style.display = 'block';
+        document.getElementById('dates-row').innerHTML =
+            '<div class="loading"><i class="bi bi-hourglass-split me-2"></i>Đang tải ngày...</div>';
+        document.getElementById('btn-step1').disabled = true;
+
+        fetch(`/booking/dates?movieId=${MOVIE_ID}&cinemaId=${cinemaId}`)
+            .then(r => r.json())
+            .then(dates => renderDates(dates))
+            .catch(() => {
+                document.getElementById('dates-row').innerHTML =
+                    '<div class="empty-state"><i class="bi bi-calendar-x"></i>Không tải được lịch chiếu</div>';
+            });
+    }
+
+    /* ── RENDER DATES ── */
+    function renderDates(dates) {
+        const el = document.getElementById('dates-row');
+        if (!dates || dates.length === 0) {
+            el.innerHTML = '<div class="empty-state"><i class="bi bi-calendar-x"></i>Không có suất chiếu nào tại rạp này</div>';
+            return;
+        }
+        el.innerHTML = '';
+        dates.forEach(iso => {
+            const df = formatDateDisplay(iso);
+            const b  = document.createElement('div');
+            b.className = 'date-btn';
+            b.innerHTML = `<div class="d-day">${df.short}</div><div class="d-num">${df.num}</div>`;
+            b.onclick = () => {
+                document.querySelectorAll('.date-btn').forEach(x => x.classList.remove('sel'));
+                b.classList.add('sel');
+                selDate = { iso: iso, display: df.full };
+                selTime = null;
+                loadShowtimes(iso);
+            };
+            el.appendChild(b);
+        });
+    }
+
+    /* ── LOAD SHOWTIMES ── */
+    function loadShowtimes(dateIso) {
+        document.getElementById('section-times').style.display = 'block';
+        document.getElementById('times-grid').innerHTML =
+            '<div class="loading" style="grid-column:1/-1"><i class="bi bi-hourglass-split me-2"></i>Đang tải suất chiếu...</div>';
+        document.getElementById('btn-step1').disabled = true;
+
+        fetch(`/booking/showtimes?movieId=${MOVIE_ID}&cinemaId=${selCinema.id}&date=${dateIso}`)
+            .then(r => r.json())
+            .then(list => renderShowtimes(list))
+            .catch(() => {
+                document.getElementById('times-grid').innerHTML =
+                    '<div class="empty-state" style="grid-column:1/-1"><i class="bi bi-clock-history"></i>Không tải được suất chiếu</div>';
+            });
+    }
+
+    /* ── RENDER SHOWTIMES ── */
+    function renderShowtimes(list) {
+        const el = document.getElementById('times-grid');
+        if (!list || list.length === 0) {
+            el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><i class="bi bi-clock-history"></i>Không có suất chiếu nào trong ngày này</div>';
+            return;
+        }
+        el.innerHTML = '';
+        const langMap = { original: 'Gốc', dubbed: 'Lồng tiếng', subtitled: 'Phụ đề' };
+        list.forEach(t => {
+            const b = document.createElement('div');
+            b.className = 'time-btn';
+            b.innerHTML = `
+                <div class="time-main">${t.time}</div>
+                <div class="time-hall">${t.hallName}</div>
+                <div class="time-format">${t.hallType}</div>
+                <div style="font-size:9px;color:#333;margin-top:3px;letter-spacing:1px">${langMap[t.language] || t.language}</div>
+            `;
+            b.onclick = () => {
+                document.querySelectorAll('.time-btn').forEach(x => x.classList.remove('sel'));
+                b.classList.add('sel');
+                selTime = t;
+                document.getElementById('btn-step1').disabled = false;
+            };
+            el.appendChild(b);
+        });
+    }
+
+    /* ── BUILD SEAT MAP (load từ DB thật theo showtime) ── */
+    let SEAT_LIST = [];
+
+    function buildSeatMap(){
+        const el = document.getElementById('seat-map');
+        el.innerHTML = '<div class="loading"><i class="bi bi-hourglass-split me-2"></i>Đang tải sơ đồ ghế...</div>';
+
+        fetch(`/booking/seats?showtimeId=${selTime.id}`)
+            .then(r => r.json())
+            .then(list => {
+                SEAT_LIST = list;
+                renderSeatMap(list);
+            })
+            .catch(() => {
+                el.innerHTML = '<div class="empty-state"><i class="bi bi-grid-3x3-gap"></i>Không tải được sơ đồ ghế</div>';
+            });
+    }
+
+    function renderSeatMap(list){
+        const el = document.getElementById('seat-map');
+        el.innerHTML = '';
+
+        if (!list || list.length === 0) {
+            el.innerHTML = '<div class="empty-state"><i class="bi bi-grid-3x3-gap"></i>Phòng chiếu chưa có sơ đồ ghế</div>';
+            return;
+        }
+
+        // Nhóm ghế theo row_label
+        const rows = {};
+        list.forEach(s => {
+            if(!rows[s.row]) rows[s.row] = [];
+            rows[s.row].push(s);
+        });
+
+        Object.keys(rows).sort().forEach(r => {
+            const row = document.createElement('div');
+            row.className = 'seat-row';
+            const lbl = document.createElement('div');
+            lbl.className = 'row-label';
+            lbl.textContent = r;
+            row.appendChild(lbl);
+
+            rows[r].sort((a,b) => a.number - b.number).forEach(seatInfo => {
+                const s = document.createElement('div');
+                const isVip    = seatInfo.type === 'vip';
+                const isCouple = seatInfo.type === 'couple';
+                const isTaken  = seatInfo.taken;
+                let cls = 'seat ';
+                if (isTaken)       cls += 'taken';
+                else if (isCouple) cls += 'couple';
+                else if (isVip)    cls += 'vip';
+                else               cls += 'avail';
+                s.className = cls;
+                s.dataset.id = r + seatInfo.number;
+                s.dataset.seatId = seatInfo.id;
+                s.title = r + seatInfo.number + (isVip ? ' — VIP' : isCouple ? ' — Couple' : '');
+                if(!isTaken) s.onclick = () => toggleSeat(s, r, seatInfo.number, isVip, isCouple, seatInfo.id, seatInfo.type);
+                row.appendChild(s);
+            });
+            el.appendChild(row);
+        });
+    }
+
+    function toggleSeat(el, r, c, vip, couple, seatId, seatType){
+        const id = r + c;
+        if(el.classList.contains('sel')){
+            el.classList.remove('sel');
+            selSeats = selSeats.filter(x => x.id !== id);
+            el.classList.add(couple ? 'couple' : vip ? 'vip' : 'avail');
+        } else {
+            if(selSeats.length >= 6) return;
+            el.classList.remove('avail','vip','couple');
+            el.classList.add('sel');
+            let price = seatPrices.standard;
+            if (vip)    price = seatPrices.vip;
+            if (couple) price = seatPrices.couple;
+            selSeats.push({ id, r, c, vip, couple, price, seatId, seatType });
+        }
+        updateSeatPanel();
+        document.getElementById('btn-step2').disabled = selSeats.length === 0;
+    }
+
+    function updateSeatPanel(){
+        const disp = document.getElementById('selected-seats-display');
+        const sub  = document.getElementById('seat-subtotal');
+        if(selSeats.length === 0){
+            disp.innerHTML = '<span style="color:#2e2e2e;font-size:12px;letter-spacing:1px">Chưa chọn ghế nào</span>';
+            sub.textContent = '0đ';
+            return;
+        }
+        disp.innerHTML = '<div class="seats-selected-display">' +
+            selSeats.map(s => `<span class="seat-tag">${s.id}${s.vip ? ' ★' : s.couple ? ' ♥' : ''}</span>`).join('') +
+            '</div>';
+        sub.textContent = fmt(selSeats.reduce((a,x) => a + x.price, 0));
+    }
+
+    /* ── FILL SUMMARY (step 3) ── */
+    function fillSummary(){
+        const total   = selSeats.reduce((a,x) => a + x.price, 0);
+        const seatStr = selSeats.map(s => s.id).join(', ');
+        document.getElementById('sum-cinema').textContent = selCinema.name;
+        document.getElementById('sum-date').textContent   = selDate.display;
+        document.getElementById('sum-time').textContent   = selTime.time;
+        document.getElementById('sum-hall').textContent   = selTime.hallName + ' — ' + selTime.hallType;
+        document.getElementById('sum-seats').textContent  = seatStr;
+        document.getElementById('sum-qty').textContent    = selSeats.length + ' vé';
+        document.getElementById('sum-total').textContent  = fmt(total);
+        document.getElementById('chosen-info-bar').textContent = selDate.display + ' — ' + selTime.time;
+        document.getElementById('chosen-hall-display').textContent = selTime.hallName.toUpperCase();
+        document.getElementById('chosen-fmt-display').textContent  = selTime.hallType;
+
+        // Reset discount khi vào lại trang thanh toán
+        appliedDiscount = { code: null, amount: 0 };
+        document.getElementById('inp-discount').value = '';
+        document.getElementById('discount-msg').textContent = '';
+        document.getElementById('discount-row').style.display = 'none';
+    }
+
+    /* ── APPLY DISCOUNT ── */
+    function applyDiscount(){
+        const codeInput = document.getElementById('inp-discount');
+        const msg = document.getElementById('discount-msg');
+        const code = codeInput.value.trim().toUpperCase();
+        const subtotal = selSeats.reduce((a,x) => a + x.price, 0);
+
+        if(!code){
+            msg.textContent = 'Vui lòng nhập mã giảm giá';
+            msg.style.color = '#888';
+            return;
+        }
+
+        fetch(`/booking/discount?code=${encodeURIComponent(code)}&orderTotal=${subtotal}`)
+            .then(r => r.json())
+            .then(res => {
+                if(res.valid){
+                    appliedDiscount = { code: code, amount: res.discountAmount };
+                    msg.textContent = '✓ ' + res.message;
+                    msg.style.color = '#d4f700';
+                } else {
+                    appliedDiscount = { code: null, amount: 0 };
+                    msg.textContent = '✗ ' + res.message;
+                    msg.style.color = '#ff5050';
+                }
+                updateTotalWithDiscount();
+            })
+            .catch(() => {
+                msg.textContent = '✗ Lỗi khi kiểm tra mã giảm giá';
+                msg.style.color = '#ff5050';
+            });
+    }
+
+    /* ── UPDATE TOTAL AFTER DISCOUNT ── */
+    function updateTotalWithDiscount(){
+        const subtotal = selSeats.reduce((a,x) => a + x.price, 0);
+        const total = subtotal - appliedDiscount.amount;
+
+        const discountRow = document.getElementById('discount-row');
+        if(appliedDiscount.amount > 0){
+            discountRow.style.display = 'flex';
+            document.getElementById('sum-discount').textContent = '- ' + fmt(appliedDiscount.amount);
+        } else {
+            discountRow.style.display = 'none';
+        }
+        document.getElementById('sum-total').textContent = fmt(total);
+    }
+
+    /* ── PAYMENT METHOD ── */
+    function selPayMethod(el){
+        document.querySelectorAll('.pay-opt').forEach(x => x.classList.remove('sel'));
+        el.classList.add('sel');
+    }
+
+    /* ── PROCESS PAYMENT ── */
+    function processPayment(){
+        const name  = document.getElementById('inp-name').value.trim();
+        const phone = document.getElementById('inp-phone').value.trim();
+        const email = document.getElementById('inp-email').value.trim();
+        if(!name || !phone || !email){
+            alert('Vui lòng điền đầy đủ thông tin khách hàng');
+            return;
+        }
+        const code  = 'CIN-' + Math.random().toString(36).substring(2,8).toUpperCase();
+        const subtotal = selSeats.reduce((a,x) => a + x.price, 0);
+        const discountAmount = appliedDiscount.amount;
+        const total = subtotal - discountAmount;
+        const seats = selSeats.map(s => s.id).join(', ');
+        const pay   = document.querySelector('.pay-opt.sel')?.dataset.pay || 'momo';
+
+        // Lưu vào DB
+        const params = new URLSearchParams({
+            movieId:       MOVIE_ID,
+            showtimeId:    selTime.id,
+            bookingCode:   code,
+            showDate:      selDate.display,
+            showTime:      selTime.time,
+            hallName:      selTime.hallName + ' ' + selTime.hallType,
+            seats:         seats,
+            totalAmount:   total,
+            discountAmount: discountAmount,
+            paymentMethod: pay
+        });
+        selSeats.forEach(s => {
+            params.append('seatIds', s.seatId);
+            params.append('seatTypes', s.seatType);
+            params.append('seatPrices', s.price);
+        });
+        fetch('/booking/confirm', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: params })
+            .catch(err => console.error('Lưu booking lỗi:', err));
+
+        // Điền vé
+        document.getElementById('tk-cinema').textContent = selCinema.name;
+        document.getElementById('tk-date').textContent   = selDate.display;
+        document.getElementById('tk-time').textContent   = selTime.time;
+        document.getElementById('tk-hall').textContent   = selTime.hallName + ' — ' + selTime.hallType;
+        document.getElementById('tk-seats').textContent  = seats;
+        document.getElementById('tk-name').textContent   = name;
+        document.getElementById('tk-total').textContent  = fmt(total);
+        document.getElementById('tk-code').textContent   = code;
+        document.getElementById('success-sub-text').textContent = 'Vé xác nhận thành công! E-ticket đã gửi đến ' + email;
+
+        goStep(4);
+    }
+
+    /* ── STEP NAVIGATION ── */
+    function goStep(n){
+        if(n === 2){ buildSeatMap(); selSeats = []; updateSeatPanel(); }
+        if(n === 3){ fillSummary(); }
+        for(let i = 1; i <= 4; i++){
+            document.getElementById('page' + i).classList.toggle('active', i === n);
+            const s = document.getElementById('s' + i);
+            s.classList.remove('active','done');
+            if(i === n) s.classList.add('active');
+            if(i < n)   s.classList.add('done');
+            const line = document.getElementById('line' + i);
+            if(line) line.style.background = i < n ? '#333' : '#1e1e1e';
+        }
+        window.scrollTo(0,0);
+    }
+
+    function goBack(){
+        const cur = [1,2,3,4].find(i => document.getElementById('page'+i).classList.contains('active'));
+        if(cur > 1) goStep(cur - 1);
+        else window.history.back();
+    }
+
+    function resetAll(){
+        selCinema = null; selDate = null; selTime = null; selSeats = [];
+        appliedDiscount = { code: null, amount: 0 };
+        document.querySelectorAll('.cinema-btn').forEach(x => x.classList.remove('sel'));
+        document.getElementById('section-dates').style.display = 'none';
+        document.getElementById('section-times').style.display = 'none';
+        document.getElementById('btn-step1').disabled = true;
+        document.getElementById('inp-name').value  = '';
+        document.getElementById('inp-phone').value = '';
+        document.getElementById('inp-email').value = '';
+        goStep(1);
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Tìm kiếm phim</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Tìm kiếm phim</h4>
+        </div>
+
+        <div class="card-body">
+            <form th:action="@{/admin/movies/search}" method="get" onsubmit="return validateForm()">
+
+                <!-- Tên phim -->
+                <div class="mb-3">
+                    <label class="form-label">Tên phim</label>
+                    <input type="text" id="title" name="title" class="form-control"
+                           th:value="${param.title}" placeholder="Nhập tên phim">
+                </div>
+
+                <!-- Diễn viên -->
+                <div class="mb-3">
+                    <label class="form-label">Diễn viên</label>
+                    <input type="text" id="actors" name="actors" class="form-control"
+                           th:value="${param.actors}" placeholder="Nhập tên diễn viên">
+                </div>
+
+                <!-- Năm phát hành -->
+                <div class="mb-3">
+                    <label class="form-label">Năm phát hành</label>
+                    <input type="number" id="releaseYear" name="releaseYear" class="form-control"
+                           th:value="${param.releaseYear}" placeholder="Ví dụ: 2024" min="1900" max="2100">
+                    <small id="yearError" class="text-danger"></small>
+                </div>
+
+                <!-- Rated -->
+                <div class="mb-3">
+                    <label class="form-label">Rated</label>
+                    <input type="text" id="rated" name="rated" class="form-control"
+                           th:value="${param.rated}" placeholder="Ví dụ: P, C13, C16, C18">
+                </div>
+
+                <!-- Trạng thái -->
+                <div class="mb-3">
+                    <label class="form-label">Trạng thái</label>
+                    <select class="form-select" name="status">
+                        <option value="">-- Tất cả --</option>
+                        <option value="coming_soon" th:selected="${param.status == 'coming_soon'}">Sắp chiếu</option>
+                        <option value="now_showing" th:selected="${param.status == 'now_showing'}">Đang chiếu</option>
+                        <option value="ended"       th:selected="${param.status == 'ended'}">Đã kết thúc</option>
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-between">
+                    <a href="/admin/movies" class="btn btn-secondary">Quay lại</a>
+                    <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Kết quả tìm kiếm -->
+    <div class="mt-4" th:if="${movies != null}">
+        <h5>Kết quả tìm kiếm</h5>
+        <div th:if="${movies.isEmpty()}">
+            <p class="text-muted">Không tìm thấy phim nào.</p>
+        </div>
+        <table class="table table-bordered table-hover" th:if="${!movies.isEmpty()}">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Tên phim</th>
+                    <th>Diễn viên</th>
+                    <th>Năm phát hành</th>
+                    <th>Rated</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="movie, i : ${movies}">
+                    <td th:text="${i.count}"></td>
+                    <td th:text="${movie.title}"></td>
+                    <td th:text="${movie.actors}"></td>
+                    <td th:text="${movie.releaseDate != null ? movie.releaseDate.getYear() : ''}"></td>
+                    <td th:text="${movie.rated}"></td>
+                    <td th:text="${movie.status}"></td>
+                    <td>
+                        <a th:href="@{/admin/movies/edit/{id}(id=${movie.id})}" class="btn btn-sm btn-warning">Sửa</a>
+                        <a th:href="@{/admin/movies/delete/{id}(id=${movie.id})}" class="btn btn-sm btn-danger"
+                           onclick="return confirm('Xác nhận xoá?')">Xoá</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function validateForm() {
+        let isValid = true;
+        document.getElementById("yearError").innerText = "";
+
+        let yearInput = document.getElementById("releaseYear").value;
+        if (yearInput !== "") {
+            let year = parseInt(yearInput);
+            if (isNaN(year) || year < 1900 || year > 2100) {
+                document.getElementById("yearError").innerText = "Năm phát hành không hợp lệ (1900 - 2100).";
+                document.getElementById("releaseYear").focus();
+                isValid = false;
+            }
+        }
+
+        return isValid;
+    }
+</script>
+
+</body>
+</html>

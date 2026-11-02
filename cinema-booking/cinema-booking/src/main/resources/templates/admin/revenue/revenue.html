@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Revenue Statistics | Cinema</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0a0a;
+      min-height: 100vh;
+      font-family: 'Barlow', sans-serif;
+      color: #e0e0e0;
+    }
+
+    /* TOP BAR */
+    .top-bar {
+      background: #111;
+      padding: 14px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1e1e1e;
+    }
+    .logo {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      font-size: 22px;
+      letter-spacing: 3px;
+      color: #fff;
+      text-decoration: none;
+    }
+    .logo span { color: #c8f000; }
+    .admin-btn {
+      background: transparent;
+      border: 1px solid #333;
+      color: #aaa;
+      font-family: 'Barlow', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 8px 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: border-color 0.2s, color 0.2s;
+      text-decoration: none;
+    }
+    .admin-btn:hover { border-color: #c8f000; color: #c8f000; }
+
+    /* PAGE CONTENT */
+    .page-content {
+      padding: 48px 64px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .page-label {
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: #c8f000;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .page-label::before {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 2px;
+      background: #c8f000;
+    }
+
+    .page-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .page-title .line1 {
+      display: block;
+      font-size: 72px;
+      color: #ffffff;
+    }
+    .page-title .line2 {
+      display: block;
+      font-size: 72px;
+      color: #c8f000;
+    }
+
+    .page-sub {
+      color: #444;
+      font-size: 13px;
+      margin-bottom: 36px;
+    }
+
+    /* FILTERS FORM */
+    .filter-box {
+      background: #111;
+      border: 1px solid #1a1a1a;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .filter-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-end;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      min-width: 160px;
+    }
+    .field-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #444;
+      font-weight: 700;
+    }
+    .search-input {
+      width: 100%;
+      background: #0a0a0a;
+      border: 1px solid #222;
+      color: #ccc;
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+      padding: 12px 18px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus { border-color: #c8f000; }
+    
+    select.search-input {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg fill='%23555555' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+
+    .submit-btn-wrap {
+      flex: 0 0 auto;
+      min-width: 160px;
+    }
+    .search-btn {
+      width: 100%;
+      background: #c8f000;
+      border: none;
+      color: #0a0a0a;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 13px 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .search-btn:hover { background: #deff00; }
+
+    /* SUMMARY CARDS GRID */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .summary-card {
+      background: #111;
+      border: 1px solid #1a1a1a;
+      border-left: 4px solid;
+      padding: 20px 24px;
+    }
+    .card-revenue { border-left-color: #4caf65; } /* Neon Green */
+    .card-bookings { border-left-color: #378add; } /* Neon Blue */
+    
+    .card-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #444;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .card-value {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+    }
+    .text-revenue { color: #4caf65; }
+    .text-bookings { color: #378add; }
+
+    /* CHART CONTAINER */
+    .chart-wrap {
+      background: #111;
+      border: 1px solid #1a1a1a;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    /* TABLE */
+    .table-wrap {
+      border: 1px solid #1a1a1a;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      min-width: 600px;
+    }
+    thead tr { background: #0e0e0e; }
+    thead th {
+      padding: 16px 20px;
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: #444;
+      font-weight: 700;
+      border-bottom: 1px solid #1a1a1a;
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid #141414;
+      transition: background 0.15s;
+    }
+    tbody tr:hover { background: #111; }
+    tbody tr:last-child { border-bottom: none; }
+
+    td {
+      padding: 16px 20px;
+      color: #888;
+      vertical-align: middle;
+    }
+    
+    /* Căn gióng cột giống code cũ */
+    .text-left { text-align: left; }
+    .text-center { text-align: center; }
+    .text-end { text-align: right; }
+    
+    td.label-col { color: #ddd; font-weight: 600; }
+    td.revenue-col { color: #4caf65; font-weight: 600; }
+    td.discount-col { color: #c0392b; }
+
+    /* FOOTER */
+    .footer-bar {
+      margin-top: 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: #222;
+    }
+    .online-dot {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #2a2a2a;
+    }
+    .online-dot::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%; background: #c8f000;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #333;
+      padding: 40px;
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <a href="/admin" class="logo">CINE<span>MA</span></a>
+    <a href="/admin" class="admin-btn">⚙&nbsp; ADMIN</a>
+  </div>
+
+  <div class="page-content">
+    <div class="page-label">Báo cáo hệ thống</div>
+    <div class="page-title">
+      <span class="line1">THỐNG KÊ</span>
+      <span class="line2">DOANH THU</span>
+    </div>
+    <p class="page-sub">Theo dõi doanh thu bán vé và hiệu suất đơn hàng</p>
+
+    <div class="filter-box">
+      <form th:action="@{/admin/revenue}" method="get" class="filter-form">
+
+        <div class="form-group">
+          <label class="field-label">Loại thống kê</label>
+          <select name="type" class="search-input" onchange="this.form.submit()">
+            <option value="day"   th:selected="${type == 'day'}">Theo ngày</option>
+            <option value="month" th:selected="${type == 'month'}">Theo tháng</option>
+          </select>
+        </div>
+
+        <div th:if="${type == 'day'}" class="form-group">
+          <label class="field-label">Từ ngày</label>
+          <input type="date" name="from" class="search-input"
+                 th:value="${#temporals.format(from, 'yyyy-MM-dd')}">
+        </div>
+        <div th:if="${type == 'day'}" class="form-group">
+          <label class="field-label">Đến ngày</label>
+          <input type="date" name="to" class="search-input"
+                 th:value="${#temporals.format(to, 'yyyy-MM-dd')}">
+        </div>
+
+        <div th:if="${type == 'month'}" class="form-group">
+          <label class="field-label">Năm báo cáo</label>
+          <input type="number" name="year" class="search-input"
+                 th:value="${year}" min="2020" max="2099">
+        </div>
+
+        <div class="form-group submit-btn-wrap">
+          <button type="submit" class="search-btn">Xem báo cáo</button>
+        </div>
+
+        <div class="form-group submit-btn-wrap">
+          <a th:href="@{/admin/revenue/export(type=${type}, from=${from}, to=${to}, year=${year})}" 
+             class="search-btn" 
+             style="background: transparent; border: 1px solid #c8f000; color: #c8f000; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center;">
+             Xuất báo cáo
+          </a>
+        </div>
+
+      </form>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card card-revenue">
+        <div class="card-title">Tổng doanh thu</div>
+        <div class="card-value text-revenue"
+             th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+        </div>
+      </div>
+      
+      <div class="summary-card card-bookings">
+        <div class="card-title">Tổng số đơn</div>
+        <div class="card-value text-bookings" th:text="${totalBookings} + ' ĐƠN'"></div>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <canvas id="revenueChart" height="80"></canvas>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="text-left" th:text="${type == 'month'} ? 'Tháng' : 'Ngày'">Ngày</th>
+            <th class="text-center">Số đơn</th>
+            <th class="text-end">Doanh thu</th>
+            <th class="text-end">Giảm giá</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="row : ${revenueList}">
+            <td class="label-col text-left" th:text="${row[0]}"></td>
+            <td class="text-center" th:text="${row[1]}"></td>
+            <td class="revenue-col text-end"
+                th:text="${#numbers.formatDecimal(row[2], 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+            </td>
+            <td class="discount-col text-end"
+                th:text="${#numbers.formatDecimal(row[3], 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+            </td>
+          </tr>
+          
+          <tr th:if="${#lists.isEmpty(revenueList)}">
+            <td colspan="4" class="empty-state">Không có dữ liệu hiển thị cho mốc thời gian này</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="footer-bar">
+      <span>☰ Hệ thống quản trị &nbsp;|&nbsp; ⓘ Bảo mật cao</span>
+      <span class="online-dot">ONLINE</span>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+    const labels = /*[[${chartLabels}]]*/ '';
+    const values = /*[[${chartValues}]]*/ '';
+
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'bar',
+        data: {
+            labels: labels ? labels.split(',').map(l => l.replace(/"/g, '')) : [],
+            datasets: [{
+                label: 'Doanh thu (₫)',
+                data: values ? values.split(',').map(Number) : [],
+                // Đổi thanh bar sang sắc xanh Neon Lime chủ đạo có Alpha trong suốt
+                backgroundColor: 'rgba(200, 240, 0, 0.25)', 
+                borderColor: '#c8f000',
+                borderWidth: 1.5,
+                borderRadius: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#111', // Custom popup tooltip nền tối
+                    titleFont: { family: 'Barlow' },
+                    bodyFont: { family: 'Barlow' },
+                    borderColor: '#222',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: ctx => ' Doanh thu: ' + ctx.parsed.y.toLocaleString('vi-VN') + ' ₫'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: '#1a1a1a' }, // Làm mờ các đường kẻ dọc
+                    ticks: { color: '#555', font: { family: 'Barlow', weight: 600 } }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#1a1a1a' }, // Làm mờ các đường kẻ ngang
+                    ticks: {
+                        color: '#555',
+                        font: { family: 'Barlow', weight: 600 },
+                        callback: val => val.toLocaleString('vi-VN') + ' ₫'
+                    }
+                }
+            }
+        }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Khuyến Mãi - Cinema</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0a0a0a; color: #f5f5f0; font-family: 'DM Sans', sans-serif; }
+
+        nav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1.2rem 4rem; border-bottom: 1px solid #1a1a1a;
+            position: sticky; top: 0; background: #0a0a0a; z-index: 100;
+        }
+        .logo { font-family: 'Oswald', sans-serif; font-size: 1.6rem; letter-spacing: 3px; text-decoration: none; color: #f5f5f0; }
+        .logo span { color: #e8ff00; }
+        .nav-links { display: flex; gap: 1rem; }
+        .btn-nav {
+            padding: 0.6rem 1.4rem; border: 1px solid #333; background: transparent;
+            color: #f5f5f0; font-size: 0.8rem; letter-spacing: 1.5px;
+            text-transform: uppercase; text-decoration: none; transition: all 0.2s;
+        }
+        .btn-nav:hover { border-color: #e8ff00; color: #e8ff00; }
+        .btn-nav.filled { background: #e8ff00; color: #0a0a0a; border-color: #e8ff00; }
+
+        .page-hero {
+            padding: 4rem 4rem 2rem;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .page-hero h1 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 4rem; letter-spacing: 3px; line-height: 1;
+        }
+        .page-hero h1 span { color: #e8ff00; }
+        .page-hero p {
+            margin-top: 1rem; color: #888; font-size: 0.95rem; max-width: 500px; line-height: 1.6;
+        }
+
+        .promo-section { padding: 3rem 4rem 6rem; }
+        .promo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .promo-card {
+            background: #111; border: 1px solid #1e1e1e; border-radius: 6px;
+            padding: 1.8rem; position: relative; overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .promo-card:hover { border-color: #333; }
+        .promo-card::before {
+            content: '%'; position: absolute; right: -10px; top: -20px;
+            font-family: 'Oswald', sans-serif; font-size: 7rem; color: #1a1a1a;
+            font-weight: 700; line-height: 1;
+        }
+
+        .promo-value {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2.6rem; letter-spacing: 1px; color: #e8ff00;
+            margin-bottom: 0.4rem; position: relative; z-index: 1;
+        }
+        .promo-desc {
+            font-size: 0.9rem; color: #bbb; margin-bottom: 1.2rem; line-height: 1.5;
+            position: relative; z-index: 1;
+        }
+        .promo-meta {
+            font-size: 0.85rem; color: #555; margin-bottom: 1.4rem; line-height: 1.8;
+            position: relative; z-index: 1;
+        }
+        .promo-meta strong { color: #999; }
+
+        .promo-code-row {
+            display: flex; align-items: center; gap: 10px;
+            background: #0a0a0a; border: 1px dashed #2a2a2a; border-radius: 4px;
+            padding: 0.8rem 1rem; position: relative; z-index: 1;
+        }
+        .promo-code {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.3rem; letter-spacing: 3px; color: #f5f5f0; flex: 1;
+        }
+        .btn-copy {
+            background: #e8ff00; color: #0a0a0a; border: none;
+            padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600;
+            letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer;
+            border-radius: 3px; transition: background 0.2s; font-family: 'DM Sans', sans-serif;
+        }
+        .btn-copy:hover { background: #f5f5f0; }
+        .btn-copy.copied { background: #4caf50; color: #fff; }
+
+        .empty-state {
+            text-align: center; padding: 6rem 2rem; color: #333;
+        }
+        .empty-icon { font-size: 4rem; margin-bottom: 1rem; display: block; }
+        .empty-text { font-size: 0.85rem; letter-spacing: 1px; }
+
+        @media (max-width: 768px) {
+            nav, .page-hero, .promo-section { padding-left: 1.5rem; padding-right: 1.5rem; }
+            .page-hero h1 { font-size: 2.8rem; }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="logo">CINE<span>MA</span></a>
+    <div class="nav-links">
+        <a href="/movies" class="btn-nav">Phim</a>
+        <a href="/login" class="btn-nav">Đăng nhập</a>
+        <a href="/register" class="btn-nav filled">Đăng ký</a>
+    </div>
+</nav>
+
+<div class="page-hero">
+    <h1>KHUYẾN <span>MÃI</span></h1>
+    <p>Tổng hợp các mã giảm giá đang áp dụng. Nhập mã khi đặt vé để được giảm giá ngay.</p>
+</div>
+
+<div class="promo-section">
+    <div class="promo-grid" th:if="${!promotions.isEmpty()}">
+        <div th:each="p : ${promotions}" class="promo-card">
+            <div class="promo-value"
+                 th:text="${p.discountType.name() == 'percent'
+                    ? 'GIẢM ' + p.discountValue.stripTrailingZeros().toPlainString() + '%'
+                    : 'GIẢM ' + #numbers.formatDecimal(p.discountValue, 0, 'POINT', 0, 'NONE') + 'đ'}">
+                GIẢM 10%
+            </div>
+            <div class="promo-desc" th:text="${p.description}">Mô tả khuyến mãi</div>
+            <div class="promo-meta">
+                <div>Đơn tối thiểu: <strong th:text="${#numbers.formatDecimal(p.minOrder, 0, 'POINT', 0, 'NONE') + 'đ'}"></strong></div>
+                <div>Hạn sử dụng: <strong th:text="${#temporals.format(p.validUntil, 'dd/MM/yyyy')}"></strong></div>
+            </div>
+            <div class="promo-code-row">
+                <span class="promo-code" th:text="${p.code}" th:id="'code-' + ${p.id}">CODE</span>
+                <button class="btn-copy" th:onclick="|copyCode('code-${p.id}', this)|">Copy mã</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="empty-state" th:if="${promotions.isEmpty()}">
+        <span class="empty-icon">🎟</span>
+        <div class="empty-text">HIỆN CHƯA CÓ KHUYẾN MÃI NÀO</div>
+    </div>
+</div>
+
+<script>
+    function copyCode(elId, btn) {
+        const code = document.getElementById(elId).textContent.trim();
+        navigator.clipboard.writeText(code).then(() => {
+            const oldText = btn.textContent;
+            btn.textContent = 'Đã copy!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.textContent = oldText;
+                btn.classList.remove('copied');
+            }, 1500);
+        });
+    }
+</script>
+
+</body>
+</html>

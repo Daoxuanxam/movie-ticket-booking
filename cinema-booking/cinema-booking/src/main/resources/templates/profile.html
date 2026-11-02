@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thông tin cá nhân | Cinema</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #0a0a0a;
+      --white: #f5f5f0;
+      --gray: #1a1a1a;
+      --gray2: #2a2a2a;
+      --muted: #666;
+      --accent: #e8ff00;
+      --red: #ff2d2d;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+    }
+
+    /* ── NAVBAR (copy từ home.html) ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 4rem;
+      border-bottom: 1px solid #1f1f1f;
+      background: rgba(10,10,10,0.85);
+      backdrop-filter: blur(12px);
+    }
+    .nav-brand {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.6rem;
+      letter-spacing: 3px;
+      color: var(--white);
+      text-decoration: none;
+    }
+    .nav-brand span { color: var(--accent); }
+    .nav-menu { display: flex; align-items: center; gap: 2rem; }
+    .nav-menu-link {
+      color: var(--white);
+      text-decoration: none;
+      font-size: 0.8rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-menu-link:hover { color: var(--accent); }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .nav-user { font-size: 0.85rem; color: var(--accent); font-weight: 500; letter-spacing: 1px; }
+    .btn-nav {
+      padding: 0.5rem 1.4rem;
+      border: 1px solid var(--white);
+      background: transparent;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-nav:hover { background: var(--white); color: var(--black); }
+    .btn-nav-accent { border-color: var(--accent); color: var(--accent); }
+    .btn-nav-accent:hover { background: var(--accent); color: var(--black); }
+    .btn-nav-active { border-color: var(--accent); color: var(--accent); }
+
+    /* ── PAGE ── */
+    .page-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 10rem 4rem 6rem;
+    }
+
+    /* ── HEADER ── */
+    .page-label {
+      font-size: 0.7rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+    }
+    .page-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: clamp(3rem, 7vw, 5.5rem);
+      letter-spacing: 2px;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+    .page-title span { color: var(--accent); }
+    .page-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 3rem; }
+
+    /* ── ALERTS ── */
+    .alert {
+      padding: 0.9rem 1.2rem;
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.5px;
+    }
+    .alert-success { background: rgba(232,255,0,0.06); border: 1px solid var(--accent); color: var(--accent); }
+    .alert-error   { background: rgba(255,45,45,0.06);  border: 1px solid var(--red);    color: var(--red); }
+
+    /* ── AVATAR CARD ── */
+    .avatar-card {
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+      padding: 2.5rem 3rem;
+      background: var(--gray);
+      border: 1px solid var(--gray2);
+      margin-bottom: 1px;
+    }
+    .avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--black);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Oswald', sans-serif;
+      font-size: 2.2rem;
+      flex-shrink: 0;
+    }
+    .avatar-info h2 {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 2px;
+      margin-bottom: 0.3rem;
+    }
+    .avatar-info p { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.7rem; }
+    .badge {
+      display: inline-block;
+      font-size: 0.85rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      font-weight: 500;
+    }
+    .badge-member  { background: rgba(232,255,0,0.08); border: 1px solid var(--accent); color: var(--accent); }
+    .badge-admin   { background: rgba(255,45,45,0.08);  border: 1px solid var(--red);    color: var(--red); margin-left: 6px; }
+    .badge-staff   { background: rgba(91,155,213,0.08); border: 1px solid #5b9bd5;       color: #5b9bd5; margin-left: 6px; }
+    .badge-customer{ background: rgba(102,102,102,0.1); border: 1px solid #444;          color: #888; margin-left: 6px; }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      background: var(--gray);
+      border: 1px solid var(--gray2);
+      border-top: none;
+      margin-bottom: 1px;
+    }
+    .tab {
+      padding: 1.2rem 2.5rem;
+      font-size: 0.85rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      border: none;
+      border-bottom: 2px solid transparent;
+      background: none;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+    }
+    .tab:hover { color: var(--white); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ── PANELS ── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── INFO CARD ── */
+    .info-card {
+      background: var(--gray);
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--gray2);
+      gap: 1px;
+    }
+    .info-item {
+      background: var(--gray);
+      padding: 2.5rem 3rem;
+      border-left: 3px solid transparent;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .info-item:hover {
+      border-left-color: var(--accent);
+      background: #1f1f1f;
+    }
+    .info-item-full {
+      background: var(--gray);
+      padding: 2.5rem 3rem;
+      grid-column: 1 / -1;
+      border-left: 3px solid transparent;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .info-item-full:hover {
+      border-left-color: var(--accent);
+      background: #1f1f1f;
+    }
+    .info-label {
+      font-size: 0.85rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.7rem;
+    }
+    .info-value { font-size: 1.05rem; color: var(--white); font-weight: 400; }
+    .status-active {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: #4caf65; font-size: 1rem;
+    }
+    .status-active::before {
+      content: ''; width: 7px; height: 7px;
+      border-radius: 50%; background: #4caf65;
+    }
+    .status-locked {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--red); font-size: 1rem;
+    }
+    .status-locked::before {
+      content: ''; width: 7px; height: 7px;
+      border-radius: 50%; background: var(--red);
+    }
+
+    /* ── FORM ── */
+    .form-card {
+      background: var(--gray);
+      border: 1px solid var(--gray2);
+      border-top: none;
+      padding: 2.5rem;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group:last-of-type { margin-bottom: 0; }
+    label {
+      display: block;
+      font-size: 0.85rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      background: var(--black);
+      border: 1px solid var(--gray2);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus   { border-color: var(--accent); }
+    input:disabled { color: #444; cursor: not-allowed; background: #0d0d0d; }
+    .pwd-hint { font-size: 0.85rem; color: var(--muted); margin-top: 0.4rem; }
+
+    /* ── BUTTONS ── */
+    .btn-save {
+      padding: 0.85rem 2.5rem;
+      background: var(--accent);
+      color: var(--black);
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 1.5rem;
+      display: inline-block;
+    }
+    .btn-save:hover { background: var(--white); }
+
+    .action-row { display: flex; gap: 1rem; margin-top: 2rem; }
+    .btn-edit {
+      padding: 0.85rem 2.5rem;
+      background: var(--accent);
+      color: var(--black);
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.2s;
+    }
+    .btn-edit:hover { background: var(--white); }
+    .btn-back {
+      padding: 0.85rem 2.5rem;
+      background: transparent;
+      border: 1px solid var(--gray2);
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.2s;
+    }
+    .btn-back:hover { border-color: var(--white); color: var(--white); }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 4rem;
+      border-top: 1px solid var(--gray2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6rem;
+    }
+    .footer-brand { font-family: 'Oswald', sans-serif; font-size: 1.4rem; letter-spacing: 3px; }
+    .footer-brand span { color: var(--accent); }
+    .footer-copy { font-size: 0.75rem; color: var(--muted); letter-spacing: 1px; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <a class="nav-brand" href="/">CINE<span>MA</span></a>
+  <div class="nav-menu">
+    <a href="/" class="nav-menu-link">Trang chủ</a>
+    <a href="/movies" class="nav-menu-link">Phim</a>
+    <a href="/cinemas" class="nav-menu-link">Rạp chiếu</a>
+  </div>
+  <div class="nav-right">
+    <div sec:authorize="hasRole('ADMIN')" style="display:flex;align-items:center;gap:1rem;">
+      <span class="nav-user" sec:authentication="name"></span>
+      <a href="/admin" class="btn-nav" style="border-color:#ff2d2d;color:#ff2d2d;">⚙ Admin</a>
+      <a href="/logout" class="btn-nav btn-nav-accent">Đăng xuất</a>
+    </div>
+    <div sec:authorize="hasRole('CUSTOMER')" style="display:flex;align-items:center;gap:1rem;">
+      <span class="nav-user" sec:authentication="name"></span>
+      <a href="/profile" class="btn-nav btn-nav-active">Tài khoản</a>
+      <a href="/logout" class="btn-nav btn-nav-accent">Đăng xuất</a>
+    </div>
+    <div sec:authorize="isAnonymous()" style="display:flex;gap:1rem;">
+      <a href="/login" class="btn-nav">Đăng nhập</a>
+      <a href="/register" class="btn-nav btn-nav-accent">Đăng ký</a>
+    </div>
+  </div>
+</nav>
+
+<!-- CONTENT -->
+<div class="page-wrap">
+
+  <p class="page-label">Tài khoản cá nhân</p>
+  <h1 class="page-title">THÔNG TIN <span>CÁ NHÂN</span></h1>
+  <p class="page-sub">Quản lý thông tin và bảo mật tài khoản của bạn</p>
+
+  <!-- ALERTS -->
+  <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+  <div class="alert alert-error"   th:if="${error}"   th:text="${error}"></div>
+
+  <!-- AVATAR CARD -->
+  <div class="avatar-card">
+    <div class="avatar"
+         th:text="${#strings.toUpperCase(#strings.substring(user.fullName,0,1))}">A</div>
+    <div class="avatar-info">
+      <h2 th:text="${user.fullName}">Tên người dùng</h2>
+      <p th:text="${user.email}">email@example.com</p>
+      <span class="badge badge-member">✦ Member</span>
+      <span th:if="${user.role?.name() == 'admin'}"    class="badge badge-admin">Admin</span>
+      <span th:if="${user.role?.name() == 'customer'}" class="badge badge-customer">Customer</span>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('info', this)">Thông tin</button>
+    <button class="tab" onclick="switchTab('password', this)">Đổi mật khẩu</button>
+  </div>
+
+  <!-- PANEL: THÔNG TIN -->
+  <div id="panel-info" class="panel active">
+    <div class="info-card">
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">Họ và tên</div>
+          <div class="info-value" th:text="${user.fullName}">—</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Số điện thoại</div>
+          <div class="info-value"
+               th:text="${user.phone != null and user.phone != '' ? user.phone : '—'}">—</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Email</div>
+          <div class="info-value" th:text="${user.email}">—</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Vai trò</div>
+          <div class="info-value" th:text="${user.role}">—</div>
+        </div>
+        <div class="info-item-full">
+          <div class="info-label">Trạng thái</div>
+          <span th:if="${user.isActive}"     class="status-active">Hoạt động</span>
+          <span th:unless="${user.isActive}" class="status-locked">Bị khóa</span>
+        </div>
+      </div>
+    </div>
+    <div class="action-row">
+      <a href="/profile/edit" class="btn-edit">✏ Chỉnh sửa</a>
+      <a href="/" class="btn-back">← Quay về Home</a>
+    </div>
+  </div>
+
+  <!-- PANEL: ĐỔI MẬT KHẨU -->
+  <div id="panel-password" class="panel">
+    <div class="form-card">
+      <form th:action="@{/profile/change-password}" method="post">
+        <div class="form-group">
+          <label>Mật khẩu hiện tại</label>
+          <input type="password" name="currentPassword" placeholder="••••••••" required/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Mật khẩu mới</label>
+            <input type="password" name="newPassword" placeholder="••••••••" required/>
+            <div class="pwd-hint">Tối thiểu 6 ký tự</div>
+          </div>
+          <div class="form-group">
+            <label>Xác nhận mật khẩu mới</label>
+            <input type="password" name="confirmPassword" placeholder="••••••••" required/>
+          </div>
+        </div>
+        <button type="submit" class="btn-save">🔒 Đổi mật khẩu</button>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">CINE<span>MA</span></div>
+  <div class="footer-copy">© 2026 Cinema Booking System. All rights reserved.</div>
+</footer>
+
+<script>
+  function switchTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + tab).classList.add('active');
+    el.classList.add('active');
+  }
+
+  window.onload = function() {
+    if (window.location.href.includes('tab=password')) {
+      const tabs = document.querySelectorAll('.tab');
+      switchTab('password', tabs[1]);
+    }
+  }
+</script>
+
+</body>
+</html>

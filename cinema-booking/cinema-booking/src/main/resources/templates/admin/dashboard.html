@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Cinema</title>
+
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        /* ─── TOP BAR ─── */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.4rem 2.5rem;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .logo span { color: #d4f700; }
+
+        .badge-admin {
+            background: transparent;
+            border: 1px solid #d4f700;
+            color: #d4f700;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            padding: 5px 14px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid #e24b4b;
+            color: #e24b4b;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            padding: 5px 14px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            margin-left: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-logout:hover {
+            background: #e24b4b;
+            color: #fff;
+        }
+
+        /* ─── MAIN WRAPPER ─── */
+        .dashboard-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3.5rem 2.5rem 2.5rem;
+        }
+
+        /* ─── HERO HEADING ─── */
+        .eyebrow {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: #d4f700;
+            text-transform: uppercase;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .eyebrow::before {
+            content: '';
+            display: inline-block;
+            width: 24px;
+            height: 2px;
+            background: #d4f700;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -1.5px;
+            color: #fff;
+            text-transform: uppercase;
+            margin-bottom: 0.6rem;
+        }
+
+        .hero-title span { color: #d4f700; }
+
+        .hero-sub {
+            font-size: 0.88rem;
+            color: #555;
+            letter-spacing: 0.5px;
+            margin-bottom: 3rem;
+        }
+
+        /* ─── CARDS GRID ─── */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 2.5rem;
+        }
+
+        .card-link {
+            text-decoration: none;
+            display: block;
+        }
+
+        .admin-card {
+            background: #111;
+            border: 1px solid #1e1e1e;
+            border-radius: 4px;
+            padding: 1.6rem 1.4rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .admin-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .card-users::before   { background: #378ADD; }
+        .card-bookings::before { background: #a3d44e; }
+        .card-movies::before  { background: #EF9F27; }
+        .card-revenue::before { background: #E24B4A; }
+
+        .admin-card:hover::before { transform: scaleX(1); }
+
+        .admin-card:hover {
+            background: #161616;
+            border-color: #333;
+            transform: translateY(-4px);
+        }
+
+        .card-top-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 1.4rem;
+        }
+
+        .card-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .icon-blue  { background: rgba(55,138,221,0.12); color: #378ADD; }
+        .icon-green { background: rgba(163,212,78,0.12);  color: #a3d44e; }
+        .icon-amber { background: rgba(239,159,39,0.12);  color: #EF9F27; }
+        .icon-red   { background: rgba(226,75,74,0.12);   color: #E24B4A; }
+
+        .card-arrow {
+            color: #2a2a2a;
+            font-size: 18px;
+            transition: color 0.2s, transform 0.2s;
+        }
+
+        .admin-card:hover .card-arrow {
+            color: #d4f700;
+            transform: translateX(4px);
+        }
+
+        .card-category {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            margin-bottom: 0.3rem;
+        }
+
+        .cat-blue  { color: #378ADD; }
+        .cat-green { color: #a3d44e; }
+        .cat-amber { color: #EF9F27; }
+        .cat-red   { color: #E24B4A; }
+
+        .card-name {
+            font-size: 1.35rem;
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.3rem;
+        }
+
+        .card-desc {
+            font-size: 0.78rem;
+            color: #555;
+        }
+
+        .card-footer-row {
+            border-top: 1px solid #1e1e1e;
+            margin-top: 1.2rem;
+            padding-top: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 10px;
+            color: #3a3a3a;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .dot-accent {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #d4f700;
+        }
+
+        /* ─── FOOTER ─── */
+        .dash-footer {
+            border-top: 1px solid #1a1a1a;
+            padding-top: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .dash-footer p {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #2e2e2e;
+        }
+
+        .online-badge {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #3a3a3a;
+        }
+
+        .online-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: #d4f700;
+            box-shadow: 0 0 8px #d4f700;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 900px) {
+            .cards-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 560px) {
+            .cards-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .hero-title { font-size: 2.2rem; }
+            .dashboard-wrapper { padding: 2rem 1.2rem; }
+            .top-bar { padding: 1rem 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+    <a th:href="@{/admin}" class="logo">CINE<span>MA</span></a>
+    <div style="display: flex; align-items: center;">
+        <div class="badge-admin">
+            <i class="bi bi-gear-fill me-1"></i> Admin
+        </div>
+        <a th:href="@{/logout}" class="btn-logout">
+            <i class="bi bi-box-arrow-right"></i> Đăng xuất
+        </a>
+    </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="dashboard-wrapper">
+
+    <!-- HERO HEADING -->
+    <div class="mb-4">
+        <div class="eyebrow">Hệ thống quản trị</div>
+        <h1 class="hero-title">ADMIN<br><span>DASHBOARD</span></h1>
+        <p class="hero-sub">Quản lý người dùng, vé, phim và doanh thu một cách trực quan</p>
+    </div>
+
+    <!-- CARDS -->
+    <div class="cards-grid">
+
+        <!-- Users -->
+        <a th:href="@{/admin/users}" class="card-link">
+            <div class="admin-card card-users">
+                <div class="card-top-row">
+                    <div class="card-icon icon-blue">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <i class="bi bi-arrow-right card-arrow"></i>
+                </div>
+                <div class="card-category cat-blue">Users</div>
+                <div class="card-name">Người dùng</div>
+                <div class="card-desc">Quản lý tài khoản</div>
+                <div class="card-footer-row">
+                    <div class="dot-accent"></div>
+                    <span>Chi tiết</span>
+                </div>
+            </div>
+        </a>
+
+        <!-- Bookings -->
+        <a th:href="@{/admin/bookings}" class="card-link">
+            <div class="admin-card card-bookings">
+                <div class="card-top-row">
+                    <div class="card-icon icon-green">
+                        <i class="bi bi-ticket-perforated-fill"></i>
+                    </div>
+                    <i class="bi bi-arrow-right card-arrow"></i>
+                </div>
+                <div class="card-category cat-green">Bookings</div>
+                <div class="card-name">Vé</div>
+                <div class="card-desc">Quản lý đặt vé</div>
+                <div class="card-footer-row">
+                    <div class="dot-accent"></div>
+                    <span>Chi tiết</span>
+                </div>
+            </div>
+        </a>
+
+        <!-- Movies -->
+        <a th:href="@{/admin/movies}" class="card-link">
+            <div class="admin-card card-movies">
+                <div class="card-top-row">
+                    <div class="card-icon icon-amber">
+                        <i class="bi bi-film"></i>
+                    </div>
+                    <i class="bi bi-arrow-right card-arrow"></i>
+                </div>
+                <div class="card-category cat-amber">Movies</div>
+                <div class="card-name">Phim</div>
+                <div class="card-desc">Quản lý phim</div>
+                <div class="card-footer-row">
+                    <div class="dot-accent"></div>
+                    <span>Chi tiết</span>
+                </div>
+            </div>
+        </a>
+
+        <!-- Revenue -->
+        <a th:href="@{/admin/revenue}" class="card-link">
+            <div class="admin-card card-revenue">
+                <div class="card-top-row">
+                    <div class="card-icon icon-red">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                    <i class="bi bi-arrow-right card-arrow"></i>
+                </div>
+                <div class="card-category cat-red">Revenue</div>
+                <div class="card-name">Doanh thu</div>
+                <div class="card-desc">Thống kê doanh thu</div>
+                <div class="card-footer-row">
+                    <div class="dot-accent"></div>
+                    <span>Chi tiết</span>
+                </div>
+            </div>
+        </a>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="dash-footer">
+        <p><i class="bi bi-database me-1"></i> Hệ thống quản trị &nbsp;|&nbsp; <i class="bi bi-shield-check me-1"></i> Bảo mật cao</p>
+        <div class="online-badge">
+            <div class="online-dot"></div>
+            <span>Online</span>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

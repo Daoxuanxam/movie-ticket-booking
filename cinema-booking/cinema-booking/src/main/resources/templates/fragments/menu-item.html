@@ -1,0 +1,38 @@
+<th:block th:fragment="menuItem(menu)">
+
+    <li class="nav-item" th:if="${#lists.isEmpty(menu.children) and menu.menuName != 'KHUYẾN MÃI' and menu.menuName != 'Khuyến mãi'}">
+        <a class="nav-link"
+           th:href="${menu.menuUrl}"
+           th:text="${menu.menuName}">
+        </a>
+    </li>
+
+    <li class="nav-item dropdown" th:if="${!#lists.isEmpty(menu.children) and menu.menuName != 'KHUYẾN MÃI' and menu.menuName != 'Khuyến mãi'}">
+        <a class="nav-link dropdown-toggle" href="#"
+           role="button" data-bs-toggle="dropdown" aria-expanded="false"
+           th:text="${menu.menuName}">
+        </a>
+        <ul class="dropdown-menu">
+            <th:block th:each="child : ${menu.children}">
+				<li th:if="${#lists.isEmpty(child.children) and child.menuName != 'KHUYẾN MÃI' and child.menuName != 'Khuyến mãi' and child.menuName != 'Đăng nhập' and child.menuName != 'Đăng ký'}">
+				    <a class="dropdown-item"
+				       th:href="${child.menuName == 'Đặt vé' ? '/movies' : child.menuUrl}"
+				       th:text="${child.menuName}">
+				    </a>
+				</li>
+                <li class="dropend" th:if="${!#lists.isEmpty(child.children) and child.menuName != 'KHUYẾN MÃI' and child.menuName != 'Khuyến mãi'}">
+                    <a class="dropdown-item dropdown-toggle" href="#"
+                       data-bs-toggle="dropdown"
+                       th:text="${child.menuName}">
+                    </a>
+                    <ul class="dropdown-menu">
+                        <th:block th:each="grandchild : ${child.children}">
+                            <th:block th:replace="~{fragments/menu-item :: menuItem(${grandchild})}"></th:block>
+                        </th:block>
+                    </ul>
+                </li>
+            </th:block>
+        </ul>
+    </li>
+
+</th:block>

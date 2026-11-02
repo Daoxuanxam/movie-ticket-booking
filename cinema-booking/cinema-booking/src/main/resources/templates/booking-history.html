@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <title>Lịch sử đặt vé | Cinema</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --black:#0a0a0a;--white:#f5f5f0;--gray:#1a1a1a;--gray2:#2a2a2a;--muted:#666;--accent:#e8ff00;--red:#ff2d2d; }
+    * { margin:0;padding:0;box-sizing:border-box; }
+    body { background:var(--black);color:var(--white);font-family:'DM Sans',sans-serif;font-weight:300; }
+    nav { position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1.2rem 4rem;border-bottom:1px solid #1f1f1f;background:rgba(10,10,10,0.85);backdrop-filter:blur(12px); }
+    .nav-brand { font-family:'Oswald',sans-serif;font-size:1.6rem;letter-spacing:3px;color:var(--white);text-decoration:none; }
+    .nav-brand span { color:var(--accent); }
+    .nav-menu { display:flex;align-items:center;gap:2rem; }
+    .nav-link { color:var(--white);text-decoration:none;font-size:0.8rem;letter-spacing:1.5px;text-transform:uppercase;transition:color 0.2s; }
+    .nav-link:hover { color:var(--accent); }
+    .nav-right { display:flex;align-items:center;gap:1rem; }
+    .nav-user { font-size:0.85rem;color:var(--accent);font-weight:500; }
+    .btn-nav { padding:0.5rem 1.4rem;border:1px solid var(--white);background:transparent;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.8rem;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;transition:all 0.2s; }
+    .btn-nav:hover { background:var(--white);color:var(--black); }
+    .btn-nav-accent { border-color:var(--accent);color:var(--accent); }
+    .btn-nav-accent:hover { background:var(--accent);color:var(--black); }
+
+    .page-wrap { max-width:1100px;margin:0 auto;padding:10rem 4rem 6rem; }
+    .page-label { font-size:0.7rem;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem; }
+    .page-title { font-family:'Oswald',sans-serif;font-size:clamp(3rem,7vw,5rem);letter-spacing:2px;line-height:1;margin-bottom:0.4rem; }
+    .page-title span { color:var(--accent); }
+    .page-sub { font-size:0.85rem;color:var(--muted);margin-bottom:3rem; }
+
+    /* SUMMARY */
+    .summary-bar { display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--gray2);border:1px solid var(--gray2);margin-bottom:2rem; }
+    .summary-item { background:var(--black);padding:1.5rem 2rem;text-align:center; }
+    .summary-num { font-family:'Oswald',sans-serif;font-size:2.2rem;letter-spacing:2px;color:var(--accent); }
+    .summary-lbl { font-size:0.85rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px; }
+
+    /* TABLE */
+    .booking-table { width:100%;border-collapse:collapse;background:var(--gray);border:1px solid var(--gray2); }
+    .booking-table th { font-size:0.85rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);padding:1.2rem 1.5rem;text-align:left;border-bottom:1px solid var(--gray2);background:var(--black); }
+    .booking-table td { padding:1.2rem 1.5rem;font-size:0.88rem;border-bottom:1px solid var(--gray2);vertical-align:middle; }
+    .booking-table tr:last-child td { border-bottom:none; }
+    .booking-table tr:hover td { background:#1f1f1f; }
+
+    .code-badge { font-family:'Oswald',sans-serif;font-size:0.95rem;letter-spacing:2px;color:var(--accent); }
+    .price-cell { font-weight:500;color:var(--accent); }
+
+    .status-badge { display:inline-block;padding:3px 10px;font-size:0.85rem;letter-spacing:2px;text-transform:uppercase;font-weight:500; }
+    .status-confirmed { background:rgba(232,255,0,0.08);border:1px solid var(--accent);color:var(--accent); }
+    .status-pending   { background:rgba(255,165,0,0.08);border:1px solid orange;color:orange; }
+    .status-cancelled { background:rgba(255,45,45,0.08);border:1px solid var(--red);color:var(--red); }
+    .status-refunded  { background:rgba(100,100,100,0.08);border:1px solid #666;color:#999; }
+
+    /* EMPTY */
+    .empty-state { text-align:center;padding:6rem 2rem;background:var(--gray);border:1px solid var(--gray2); }
+    .empty-icon { font-size:4rem;margin-bottom:1.5rem;display:block; }
+    .empty-title { font-family:'Oswald',sans-serif;font-size:2rem;letter-spacing:2px;margin-bottom:0.8rem;color:var(--muted); }
+    .empty-sub { font-size:0.85rem;color:var(--muted);margin-bottom:2rem; }
+
+    .action-row { display:flex;gap:1rem;margin-top:2rem; }
+    .btn-primary { display:inline-block;padding:0.85rem 2.5rem;background:var(--accent);color:var(--black);font-family:'DM Sans',sans-serif;font-weight:500;font-size:0.8rem;letter-spacing:2px;text-transform:uppercase;text-decoration:none;transition:all 0.2s; }
+    .btn-primary:hover { background:var(--white); }
+    .btn-back { padding:0.85rem 2.5rem;background:transparent;border:1px solid var(--gray2);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.8rem;letter-spacing:2px;text-transform:uppercase;text-decoration:none;display:inline-block;transition:all 0.2s; }
+    .btn-back:hover { border-color:var(--white);color:var(--white); }
+
+    footer { padding:4rem;border-top:1px solid var(--gray2);display:flex;align-items:center;justify-content:space-between;margin-top:6rem; }
+    .footer-brand { font-family:'Oswald',sans-serif;font-size:1.4rem;letter-spacing:3px; }
+    .footer-brand span { color:var(--accent); }
+    .footer-copy { font-size:0.75rem;color:var(--muted);letter-spacing:1px; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="/">CINE<span>MA</span></a>
+  <div class="nav-menu">
+    <a href="/" class="nav-link">Trang chủ</a>
+    <a href="/movies" class="nav-link">Phim</a>
+  </div>
+  <div class="nav-right">
+    <div sec:authorize="hasRole('ADMIN')" style="display:flex;align-items:center;gap:1rem;">
+      <span class="nav-user" sec:authentication="name"></span>
+      <a href="/admin" class="btn-nav" style="border-color:#ff2d2d;color:#ff2d2d;">⚙ Admin</a>
+      <a href="/logout" class="btn-nav btn-nav-accent">Đăng xuất</a>
+    </div>
+    <div sec:authorize="hasRole('CUSTOMER')" style="display:flex;align-items:center;gap:1rem;">
+      <span class="nav-user" sec:authentication="name"></span>
+      <a href="/profile" class="btn-nav btn-nav-accent">Tài khoản</a>
+      <a href="/logout" class="btn-nav btn-nav-accent">Đăng xuất</a>
+    </div>
+    <div sec:authorize="isAnonymous()" style="display:flex;gap:1rem;">
+      <a href="/login" class="btn-nav">Đăng nhập</a>
+      <a href="/register" class="btn-nav btn-nav-accent">Đăng ký</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <p class="page-label">Tài khoản cá nhân</p>
+  <h1 class="page-title">LỊCH SỬ <span>ĐẶT VÉ</span></h1>
+  <p class="page-sub" th:text="'Xin chào ' + ${user.fullName} + ' — Danh sách các vé bạn đã đặt'"></p>
+
+  <!-- CÓ BOOKING -->
+  <div th:if="${bookings != null and !bookings.isEmpty()}">
+
+    <div class="summary-bar">
+      <div class="summary-item">
+        <div class="summary-num" th:text="${#lists.size(bookings)}">0</div>
+        <div class="summary-lbl">Tổng vé đã đặt</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-num" th:text="${confirmedCount}">0</div>
+        <div class="summary-lbl">Đã xác nhận</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-num"
+             th:text="${#numbers.formatDecimal(totalSpent, 0, 'COMMA', 0, 'POINT') + 'đ'}">0đ</div>
+        <div class="summary-lbl">Tổng chi tiêu</div>
+      </div>
+    </div>
+
+    <table class="booking-table">
+      <thead>
+        <tr>
+          <th>Mã đặt vé</th>
+          <th>Ngày đặt</th>
+          <th>Suất chiếu</th>
+          <th>Tổng tiền</th>
+          <th>Thanh toán</th>
+          <th>Trạng thái</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="b : ${bookings}">
+          <td><span class="code-badge" th:text="${b.bookingCode}">CIN-XXXXXX</span></td>
+          <td th:text="${#temporals.format(b.createdAt, 'dd/MM/yyyy HH:mm')}">—</td>
+          <td th:text="${b.showtimeId}">—</td>
+          <td class="price-cell"
+              th:text="${#numbers.formatDecimal(b.totalAmount, 0, 'COMMA', 0, 'POINT') + 'đ'}">—</td>
+          <td th:text="${b.paymentMethod != null ? b.paymentMethod : '—'}">—</td>
+          <td>
+            <span th:class="${'status-badge status-' + b.status.name()}"
+                  th:text="${b.status.name() == 'confirmed' ? 'Đã xác nhận' :
+                            (b.status.name() == 'pending'   ? 'Chờ xử lý' :
+                            (b.status.name() == 'cancelled' ? 'Đã hủy' : 'Hoàn tiền'))}">
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+
+  <!-- CHƯA CÓ BOOKING -->
+  <div th:if="${bookings == null or bookings.isEmpty()}" class="empty-state">
+    <span class="empty-icon">🎟</span>
+    <div class="empty-title">Chưa có lịch sử đặt vé</div>
+    <p class="empty-sub">Bạn chưa đặt vé nào. Hãy khám phá các bộ phim đang chiếu!</p>
+    <a href="/movies" class="btn-primary">▶ Xem phim ngay</a>
+  </div>
+
+  <div class="action-row">
+    <a href="/profile" class="btn-back">← Quay lại tài khoản</a>
+    <a href="/movies" class="btn-primary">🎟 Đặt vé mới</a>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-brand">CINE<span>MA</span></div>
+  <div class="footer-copy">© 2026 Cinema Booking System. All rights reserved.</div>
+</footer>
+
+</body>
+</html>

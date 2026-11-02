@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý vé | Cinema Admin</title>
+
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            font-family: 'Inter', sans-serif;
+            color: #fff;
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        /* ─── TOP BAR (exactly matching dashboard) ─── */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.4rem 2.5rem;
+            border-bottom: 1px solid #1a1a1a;
+            background: #0a0a0a;
+        }
+
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .logo span { color: #d4f700; }
+
+        .badge-admin {
+            background: transparent;
+            border: 1px solid #d4f700;
+            color: #d4f700;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            padding: 5px 14px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+
+        /* ─── MAIN WRAPPER (consistent spacing) ─── */
+        .dashboard-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2.5rem 2rem 2rem;
+        }
+
+        /* ─── HERO / EYEBROW (dashboard style) ─── */
+        .eyebrow {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: #d4f700;
+            text-transform: uppercase;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .eyebrow::before {
+            content: '';
+            display: inline-block;
+            width: 24px;
+            height: 2px;
+            background: #d4f700;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -1.5px;
+            color: #fff;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-title span { color: #d4f700; }
+
+        .hero-sub {
+            font-size: 0.85rem;
+            color: #555;
+            letter-spacing: 0.5px;
+            margin-bottom: 2rem;
+            border-left: 2px solid #d4f700;
+            padding-left: 12px;
+        }
+
+        /* ─── FILTER CARD (unified dark style) ─── */
+        .filter-section {
+            background: #111;
+            border: 1px solid #1e1e1e;
+            border-radius: 4px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .filter-label {
+            display: block;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 6px;
+        }
+
+        .filter-input, .filter-select {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 3px;
+            color: #fff;
+            font-family: 'Inter', monospace;
+            font-size: 0.85rem;
+            padding: 0.65rem 0.9rem;
+            transition: all 0.2s;
+            outline: none;
+            width: 100%;
+        }
+
+        .filter-input:focus, .filter-select:focus {
+            border-color: #d4f700;
+            box-shadow: 0 0 0 1px #d4f700;
+        }
+
+        .btn-filter {
+            background: #d4f700;
+            border: none;
+            border-radius: 3px;
+            color: #0a0a0a;
+            font-weight: 800;
+            font-size: 0.75rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 0.65rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-filter:hover {
+            background: #bde300;
+            transform: translateY(-1px);
+        }
+
+        /* ─── TABLE CARD (exactly like admin-card vibe) ─── */
+        .table-container {
+            background: #111;
+            border: 1px solid #1e1e1e;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        .booking-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        .booking-table th {
+            text-align: left;
+            padding: 1rem 1rem;
+            background: #0d0d0d;
+            border-bottom: 1px solid #1e1e1e;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #999;
+        }
+
+        .booking-table td {
+            padding: 1rem 1rem;
+            border-bottom: 1px solid #181818;
+            color: #ddd;
+            vertical-align: middle;
+        }
+
+        .booking-table tr:hover td {
+            background: #161616;
+        }
+
+        /* special codes */
+        .booking-code {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            color: #d4f700;
+            letter-spacing: -0.3px;
+        }
+
+        .seat-badge {
+            display: inline-flex;
+            background: #1a1a1a;
+            border: 0.5px solid #2c2c2c;
+            border-radius: 3px;
+            padding: 3px 8px;
+            font-size: 0.7rem;
+            font-family: monospace;
+            font-weight: 600;
+            margin: 2px;
+            color: #ccc;
+        }
+
+        /* status badges (dashboard style) */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #1a1a1a;
+            border-radius: 2px;
+            padding: 4px 10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .status-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .badge-pending { color: #fbbf24; background: rgba(251,191,36,0.1); }
+        .badge-confirmed { color: #d4f700; background: rgba(212,247,0,0.1); }
+        .badge-cancelled { color: #ff5555; background: rgba(255,85,85,0.08); }
+        .badge-refunded { color: #888; background: rgba(136,136,136,0.12); }
+        .badge-paid { color: #22d3a3; background: rgba(34,211,163,0.1); }
+        .badge-unpaid { color: #f97316; background: rgba(249,115,22,0.1); }
+
+        /* action buttons minimal, neon on hover */
+        .action-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: 1px solid #2a2a2a;
+            border-radius: 3px;
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover {
+            border-color: #d4f700;
+            color: #d4f700;
+            transform: translateY(-2px);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #555;
+        }
+
+        .empty-state i {
+            font-size: 2rem;
+            color: #d4f700;
+            margin-bottom: 1rem;
+        }
+
+        /* footer same as dashboard */
+        .dash-footer {
+            border-top: 1px solid #1a1a1a;
+            padding-top: 1.2rem;
+            margin-top: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .dash-footer p {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #2e2e2e;
+        }
+
+        .online-badge {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #3a3a3a;
+        }
+
+        .online-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #d4f700;
+            box-shadow: 0 0 8px #d4f700;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-wrapper { padding: 1.5rem; }
+            .hero-title { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR — exactly as dashboard -->
+<div class="top-bar">
+    <a th:href="@{/admin}" class="logo">CINE<span>MA</span></a>
+    <div class="badge-admin">
+        <i class="bi bi-gear-fill me-1"></i> Admin
+    </div>
+</div>
+
+<!-- MAIN WRAPPER -->
+<div class="dashboard-wrapper">
+
+    <!-- HERO HEADING (matching dashboard style) -->
+    <div class="mb-4">
+        <div class="eyebrow">Quản lý đặt vé</div>
+        <h1 class="hero-title">BOOKING<br><span>MANAGEMENT</span></h1>
+        <p class="hero-sub">Theo dõi, lọc và xử lý tất cả giao dịch vé — dữ liệu trực quan, an toàn</p>
+    </div>
+
+    <!-- FILTER BAR — dark unified style -->
+    <div class="filter-section">
+        <div class="filter-group">
+            <div class="filter-label"><i class="bi bi-search me-1"></i> Từ khóa</div>
+            <form method="get" th:action="@{/admin/bookings}" id="filterForm" style="display:contents;">
+                <input type="text"
+                       name="keyword"
+                       class="filter-input"
+                       placeholder="Mã vé / tên / email..."
+                       th:value="${keyword}">
+        </div>
+        <div class="filter-group">
+            <div class="filter-label"><i class="bi bi-funnel"></i> Trạng thái</div>
+                <select name="status" class="filter-select" onchange="this.form.submit()">
+                    <option value="">Tất cả trạng thái</option>
+                    <option th:each="s : ${statuses}"
+                            th:value="${s}"
+                            th:text="${s}"
+                            th:selected="${s?.name() == status}"></option>
+                </select>
+        </div>
+        <div class="filter-group" style="flex:0 0 auto;">
+            <button type="submit" class="btn-filter">
+                <i class="bi bi-funnel-fill"></i> Lọc dữ liệu
+            </button>
+        </div>
+            </form>
+    </div>
+
+    <!-- TABLE CARD -->
+    <div class="table-container">
+        <table class="booking-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Mã vé</th>
+                    <th>Khách hàng</th>
+                    <th>Phim</th>
+                    <th>Ghế</th>
+                    <th>Tổng tiền</th>
+                    <th>Trạng thái vé</th>
+                    <th>Thanh toán</th>
+                    <th style="text-align:center">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="b : ${bookings}">
+                    <td class="fw-mono" style="color:#aaa;" th:text="${b.id}">1</td>
+                    <td><span class="booking-code" th:text="${b.bookingCode}">BK-101</span></td>
+                    <td style="font-weight:500;" th:text="${b.user?.fullName != null ? b.user.fullName : 'Khách lẻ'}">Nguyễn Văn A</td>
+                    <td style="color:#bbb;" th:text="${b.showtime?.movie?.title}">Avatar 2</td>
+                    <td>
+                        <th:block th:if="${b.bookingSeats != null and !#lists.isEmpty(b.bookingSeats)}">
+                            <span th:each="s, iterStat : ${b.bookingSeats}"
+                                  class="seat-badge"
+                                  th:text="${s.seat?.seatNumber}">A12</span>
+                        </th:block>
+                        <span th:if="${b.bookingSeats == null or #lists.isEmpty(b.bookingSeats)}" style="color:#666;">—</span>
+                    </td>
+                    <td style="font-family: monospace; font-weight:600;" th:text="${b.totalAmount != null ? #numbers.formatDecimal(b.totalAmount, 1, 'COMMA', 0, 'POINT') + ' ₫' : '0 ₫'}">250,000 ₫</td>
+                    <td>
+                        <span th:if="${b.status?.name() == 'PENDING' or b.status?.name() == 'pending'}" class="status-badge badge-pending">Chờ xác nhận</span>
+                        <span th:if="${b.status?.name() == 'CONFIRMED' or b.status?.name() == 'confirmed'}" class="status-badge badge-confirmed">Đã xác nhận</span>
+                        <span th:if="${b.status?.name() == 'CANCELLED' or b.status?.name() == 'cancelled'}" class="status-badge badge-cancelled">Đã hủy</span>
+                        <span th:if="${b.status?.name() == 'REFUNDED' or b.status?.name() == 'refunded'}" class="status-badge badge-refunded">Hoàn tiền</span>
+                    </td>
+                    <td>
+                        <span th:if="${b.paymentStatus?.name() == 'UNPAID' or b.paymentStatus?.name() == 'unpaid'}" class="status-badge badge-unpaid">Chưa thanh toán</span>
+                        <span th:if="${b.paymentStatus?.name() == 'PAID' or b.paymentStatus?.name() == 'paid'}" class="status-badge badge-paid">Đã thanh toán</span>
+                        <span th:if="${b.paymentStatus?.name() == 'REFUNDED' or b.paymentStatus?.name() == 'refunded'}" class="status-badge badge-refunded">Đã hoàn</span>
+                    </td>
+                    <td style="text-align:center">
+                        <div class="action-group">
+                            <!-- View detail -->
+                            <a th:href="@{/admin/bookings/{id}(id=${b.id})}" class="action-btn" title="Xem chi tiết">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <!-- Cancel Form -->
+                            <form method="post" th:action="@{/admin/bookings/{id}/cancel(id=${b.id})}" class="d-inline">
+                                <button type="submit"
+                                        class="action-btn"
+                                        title="Hủy vé"
+                                        onclick="return confirm('Xác nhận hủy vé này? Hành động này có thể ảnh hưởng đến thanh toán.')"
+                                        th:disabled="${b.status?.name() == 'CANCELLED' or b.status?.name() == 'cancelled'}">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            </form>
+                            <!-- Refund Form -->
+                            <form method="post" th:action="@{/admin/bookings/{id}/refund(id=${b.id})}" class="d-inline">
+                                <button type="submit"
+                                        class="action-btn"
+                                        title="Hoàn tiền"
+                                        onclick="return confirm('Xác nhận hoàn tiền cho vé này? Chỉ áp dụng với vé đã thanh toán.')"
+                                        th:disabled="${b.paymentStatus?.name() != 'PAID' and b.paymentStatus?.name() != 'paid'}">
+                                    <i class="bi bi-cash-stack"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(bookings)}">
+                    <td colspan="9">
+                        <div class="empty-state">
+                            <i class="bi bi-ticket-perforated"></i>
+                            <p>Không tìm thấy giao dịch vé nào phù hợp với bộ lọc.</p>
+                            <small style="color:#3a3a3a;">Hãy thử thay đổi từ khóa hoặc trạng thái</small>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- FOOTER exactly matching the admin dashboard -->
+    <div class="dash-footer">
+        <p><i class="bi bi-database me-1"></i> Hệ thống quản trị vé &nbsp;|&nbsp; <i class="bi bi-shield-check me-1"></i> Bảo mật cao</p>
+        <div class="online-badge">
+            <div class="online-dot"></div>
+            <span>Online</span>
+        </div>
+    </div>
+</div>
+
+<!-- small script to ensure form submit on select change (optional but consistent) -->
+<script>
+    // automatic submission when status dropdown changes, to keep UX smooth.
+    document.querySelectorAll('.filter-select').forEach(select => {
+        select.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+</script>
+
+</body>
+</html>

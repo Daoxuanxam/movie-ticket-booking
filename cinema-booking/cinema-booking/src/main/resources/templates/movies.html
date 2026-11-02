@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách phim - Cinema</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0a0a0a; color: #f5f5f0; font-family: 'DM Sans', sans-serif; }
+
+        /* NAV */
+        nav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1.2rem 4rem; border-bottom: 1px solid #1a1a1a;
+            position: sticky; top: 0; background: #0a0a0a; z-index: 100;
+        }
+        .logo { font-family: 'Oswald', sans-serif; font-size: 1.6rem; letter-spacing: 3px; text-decoration: none; color: #f5f5f0; }
+        .logo span { color: #e8ff00; }
+        .nav-links { display: flex; gap: 1rem; align-items: center; }
+        .btn-nav {
+            padding: 0.6rem 1.4rem; border: 1px solid #333; background: transparent;
+            color: #f5f5f0; font-family: 'DM Sans', sans-serif; font-size: 0.8rem;
+            letter-spacing: 1.5px; text-transform: uppercase; text-decoration: none;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-nav:hover, .btn-nav.active { border-color: #e8ff00; color: #e8ff00; }
+        .btn-nav.filled { background: #e8ff00; color: #0a0a0a; border-color: #e8ff00; }
+        .btn-nav.filled:hover { background: #f5f5f0; border-color: #f5f5f0; }
+
+        /* HERO */
+        .page-hero {
+            padding: 4rem 4rem 2rem;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .page-hero h1 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 4rem; letter-spacing: 3px;
+            line-height: 1;
+        }
+        .page-hero h1 span { color: #e8ff00; }
+
+        /* SEARCH BAR */
+        .search-section {
+            padding: 2rem 4rem;
+            border-bottom: 1px solid #1a1a1a;
+            display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+        }
+        .search-input-wrap { position: relative; flex: 1; min-width: 250px; }
+        .search-input-wrap input {
+            width: 100%; padding: 0.85rem 1rem 0.85rem 3rem;
+            background: #111; border: 1px solid #2a2a2a;
+            color: #f5f5f0; font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+            outline: none; transition: border-color 0.2s;
+        }
+        .search-input-wrap input:focus { border-color: #e8ff00; }
+        .search-input-wrap::before {
+            content: '🔍'; position: absolute; left: 1rem; top: 50%;
+            transform: translateY(-50%); font-size: 0.9rem;
+        }
+        .filter-tabs { display: flex; gap: 0.5rem; }
+        .filter-tab {
+            padding: 0.75rem 1.5rem; border: 1px solid #2a2a2a;
+            background: transparent; color: #888; font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem; letter-spacing: 1.5px; text-transform: uppercase;
+            cursor: pointer; transition: all 0.2s; text-decoration: none;
+        }
+        .filter-tab:hover { border-color: #555; color: #f5f5f0; }
+        .filter-tab.active { background: #e8ff00; color: #0a0a0a; border-color: #e8ff00; font-weight: 600; }
+
+        /* STATS */
+        .stats-bar {
+            padding: 1rem 4rem;
+            font-size: 0.8rem; color: #555; letter-spacing: 1px;
+            border-bottom: 1px solid #111;
+        }
+        .stats-bar span { color: #e8ff00; font-weight: 600; }
+
+        /* SECTION */
+        .section { padding: 3rem 4rem; }
+        .section-header {
+            display: flex; align-items: baseline; justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        .section-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.8rem; letter-spacing: 2px;
+        }
+        .section-title .dot { color: #e8ff00; }
+        .section-count { font-size: 0.85rem; color: #555; letter-spacing: 1px; }
+
+        /* MOVIE GRID */
+        .movies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1px;
+            background: #1a1a1a;
+        }
+        .movie-card {
+            background: #0a0a0a;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        .movie-card:hover { transform: scale(1.02); z-index: 2; }
+        .movie-card:hover .card-overlay { opacity: 1; }
+        .movie-card:hover .card-info { background: #0a0a0a; }
+
+        .card-poster {
+            aspect-ratio: 2/3;
+            background: #111;
+            overflow: hidden;
+            position: relative;
+        }
+        .card-poster img { width: 100%; height: 100%; object-fit: cover; }
+        .card-poster-placeholder {
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 0.5rem; color: #333;
+        }
+        .card-poster-placeholder .icon { font-size: 3rem; }
+        .card-poster-placeholder .text { font-size: 0.85rem; letter-spacing: 2px; }
+
+        .card-overlay {
+            position: absolute; inset: 0;
+            background: rgba(232,255,0,0.08);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .btn-play {
+            width: 52px; height: 52px; border-radius: 50%;
+            background: #e8ff00; color: #0a0a0a;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .card-badge {
+            position: absolute; top: 10px; left: 10px;
+            padding: 3px 8px; font-size: 0.85rem;
+            letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600;
+        }
+        .badge-showing { background: #e8ff00; color: #0a0a0a; }
+        .badge-coming  { background: rgba(255,255,255,0.15); color: #f5f5f0; backdrop-filter: blur(4px); }
+        .badge-ended   { background: rgba(255,255,255,0.08); color: #888; }
+
+        .rated-badge {
+            position: absolute; top: 10px; right: 10px;
+            padding: 3px 7px; font-size: 0.85rem; font-weight: 700;
+            border: 1px solid rgba(255,255,255,0.3); color: #f5f5f0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+        }
+
+        .card-info { padding: 1rem; background: #111; transition: background 0.3s; }
+        .card-title {
+            font-weight: 600; font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .card-meta {
+            display: flex; gap: 0.5rem; align-items: center;
+            font-size: 0.85rem; color: #555;
+        }
+        .card-meta .sep { color: #333; }
+        .card-duration::before { content: '⏱ '; }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center; padding: 6rem 2rem; color: #333;
+            grid-column: 1 / -1;
+        }
+        .empty-icon { font-size: 4rem; margin-bottom: 1rem; display: block; }
+        .empty-text { font-size: 0.85rem; letter-spacing: 1px; }
+
+        /* DIVIDER */
+        .section-divider {
+            margin: 0 4rem;
+            border: none; border-top: 1px solid #1a1a1a;
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+    <a href="/" class="logo">CINE<span>MA</span></a>
+    <div class="nav-links">
+        <a href="/movies" class="btn-nav active">Phim</a>
+        <div sec:authorize="hasRole('ADMIN')" style="display:flex;align-items:center;gap:1rem;">
+            <a href="/admin" class="btn-nav" style="border-color:#ff2d2d;color:#ff2d2d;">⚙ Admin</a>
+            <a href="/logout" class="btn-nav filled">Đăng xuất</a>
+        </div>
+        <div sec:authorize="hasRole('CUSTOMER')" style="display:flex;align-items:center;gap:1rem;">
+            <a href="/profile" class="btn-nav filled">Tài khoản</a>
+            <a href="/logout" class="btn-nav filled">Đăng xuất</a>
+        </div>
+        <div sec:authorize="isAnonymous()" style="display:flex;gap:1rem;">
+            <a href="/login" class="btn-nav">Đăng nhập</a>
+            <a href="/register" class="btn-nav filled">Đăng ký</a>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<div class="page-hero">
+    <h1>DANH SÁCH <span>PHIM</span></h1>
+</div>
+
+<!-- SEARCH + FILTER -->
+<div class="search-section">
+    <form th:action="@{/movies}" method="get" style="display:contents">
+        <div class="search-input-wrap">
+            <input type="text" name="search"
+                   th:value="${search}"
+                   placeholder="Tìm kiếm phim..."/>
+        </div>
+        <div class="filter-tabs">
+            <a th:href="@{/movies}" class="filter-tab" th:classappend="${(status == null or status == '') ? ' active' : ''}">Tất cả</a>
+            <a th:href="@{/movies(status='now_showing')}" class="filter-tab" th:classappend="${status == 'now_showing' ? ' active' : ''}">Đang chiếu</a>
+            <a th:href="@{/movies(status='coming_soon')}" class="filter-tab" th:classappend="${status == 'coming_soon' ? ' active' : ''}">Sắp chiếu</a>
+            <a th:href="@{/movies(status='ended')}" class="filter-tab" th:classappend="${status == 'ended' ? ' active' : ''}">Đã kết thúc</a>
+        </div>
+        <button type="submit" class="btn-nav">Tìm</button>
+    </form>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar">
+    <span th:if="${cinemaName != null}">
+        Phim đang chiếu tại <span th:text="${cinemaName}"></span> —
+    </span>
+    Tìm thấy <span th:text="${movies.size()}">0</span> phim
+    <a th:if="${cinemaId != null}" th:href="@{/movies}" style="color:#888;margin-left:1rem;text-decoration:underline;font-size:0.8rem;">✕ Bỏ lọc</a>
+</div>
+<!-- ĐANG CHIẾU -->
+<div class="section" th:if="${(status == null or status == '') and !nowShowing.isEmpty()}">
+    <div class="section-header">
+        <div class="section-title">ĐANG CHIẾU <span class="dot">●</span></div>
+        <div class="section-count" th:text="${nowShowing.size()} + ' PHIM'"></div>
+    </div>
+    <div class="movies-grid">
+        <a th:each="movie : ${nowShowing}"
+           th:href="@{/movies/{id}(id=${movie.id})}"
+           class="movie-card">
+            <div class="card-poster">
+                <img th:if="${movie.posterUrl != null and !movie.posterUrl.isEmpty()}"
+                     th:src="${movie.posterUrl}" th:alt="${movie.title}"/>
+                <div th:unless="${movie.posterUrl != null and !movie.posterUrl.isEmpty()}"
+                     class="card-poster-placeholder">
+                    <span class="icon">🎬</span>
+                    <span class="text">NO POSTER</span>
+                </div>
+                <div class="card-overlay"><div class="btn-play">▶</div></div>
+                <span class="card-badge badge-showing">Đang chiếu</span>
+                <span th:if="${movie.rated != null}" class="rated-badge" th:text="${movie.rated}"></span>
+            </div>
+            <div class="card-info">
+                <div class="card-title" th:text="${movie.title}">Tên phim</div>
+                <div class="card-meta">
+                    <span class="card-duration" th:text="${movie.duration + ' phút'}">120 phút</span>
+                    <span class="sep">·</span>
+                    <span th:text="${movie.releaseDate != null ? movie.releaseDate.getYear() : ''}"></span>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<hr class="section-divider" th:if="${(status == null or status == '') and !nowShowing.isEmpty() and !comingSoon.isEmpty()}"/>
+
+<!-- SẮP CHIẾU -->
+<div class="section" th:if="${(status == null or status == '') and !comingSoon.isEmpty()}">
+    <div class="section-header">
+        <div class="section-title">SẮP CHIẾU</div>
+        <div class="section-count" th:text="${comingSoon.size()} + ' PHIM'"></div>
+    </div>
+    <div class="movies-grid">
+        <a th:each="movie : ${comingSoon}"
+           th:href="@{/movies/{id}(id=${movie.id})}"
+           class="movie-card">
+            <div class="card-poster">
+                <img th:if="${movie.posterUrl != null and !movie.posterUrl.isEmpty()}"
+                     th:src="${movie.posterUrl}" th:alt="${movie.title}"/>
+                <div th:unless="${movie.posterUrl != null and !movie.posterUrl.isEmpty()}"
+                     class="card-poster-placeholder">
+                    <span class="icon">🎬</span>
+                    <span class="text">NO POSTER</span>
+                </div>
+                <div class="card-overlay"><div class="btn-play">▶</div></div>
+                <span class="card-badge badge-coming">Sắp chiếu</span>
+                <span th:if="${movie.rated != null}" class="rated-badge" th:text="${movie.rated}"></span>
+            </div>
+            <div class="card-info">
+                <div class="card-title" th:text="${movie.title}">Tên phim</div>
+                <div class="card-meta">
+                    <span class="card-duration" th:text="${movie.duration + ' phút'}">120 phút</span>
+                    <span class="sep">·</span>
+                    <span th:text="${movie.releaseDate != null ? movie.releaseDate.getYear() : ''}"></span>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- KẾT QUẢ TÌM KIẾM / LỌC -->
+<div class="section" th:if="${status != null and status != ''}">
+    <div class="section-header">
+        <div class="section-title"
+             th:text="${status == 'now_showing' ? 'ĐANG CHIẾU' : (status == 'coming_soon' ? 'SẮP CHIẾU' : 'ĐÃ KẾT THÚC')}">
+        </div>
+        <div class="section-count" th:text="${movies.size()} + ' PHIM'"></div>
+    </div>
+    <div class="movies-grid">
+        <a th:each="movie : ${movies}"
+           th:href="@{/movies/{id}(id=${movie.id})}"
+           class="movie-card">
+            <div class="card-poster">
+                <img th:if="${movie.posterUrl != null and !movie.posterUrl.isEmpty()}"
+                     th:src="${movie.posterUrl}" th:alt="${movie.title}"/>
+                <div th:unless="${movie.posterUrl != null and !movie.posterUrl.isEmpty()}"
+                     class="card-poster-placeholder">
+                    <span class="icon">🎬</span>
+                    <span class="text">NO POSTER</span>
+                </div>
+                <div class="card-overlay"><div class="btn-play">▶</div></div>
+                <span th:class="${'card-badge ' + (movie.status.name() == 'now_showing' ? 'badge-showing' : (movie.status.name() == 'coming_soon' ? 'badge-coming' : 'badge-ended'))}"
+                      th:text="${movie.status.name() == 'now_showing' ? 'Đang chiếu' : (movie.status.name() == 'coming_soon' ? 'Sắp chiếu' : 'Đã kết thúc')}">
+                </span>
+            </div>
+            <div class="card-info">
+                <div class="card-title" th:text="${movie.title}">Tên phim</div>
+                <div class="card-meta">
+                    <span class="card-duration" th:text="${movie.duration + ' phút'}">120 phút</span>
+                    <span class="sep">·</span>
+                    <span th:text="${movie.releaseDate != null ? movie.releaseDate.getYear() : ''}"></span>
+                </div>
+            </div>
+        </a>
+        <div class="empty-state" th:if="${movies.isEmpty()}">
+            <span class="empty-icon">🎬</span>
+            <div class="empty-text">KHÔNG TÌM THẤY PHIM NÀO</div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

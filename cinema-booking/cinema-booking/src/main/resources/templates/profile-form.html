@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chỉnh sửa thông tin | Cinema</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #0a0a0a; --white: #f5f5f0; --gray: #1a1a1a;
+      --gray2: #2a2a2a; --muted: #666; --accent: #e8ff00; --red: #ff2d2d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--black); color: var(--white); font-family: 'DM Sans', sans-serif; font-weight: 300; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 4rem; border-bottom: 1px solid #1f1f1f;
+      background: rgba(10,10,10,0.85); backdrop-filter: blur(12px);
+    }
+    .nav-brand { font-family: 'Oswald', sans-serif; font-size: 1.6rem; letter-spacing: 3px; color: var(--white); text-decoration: none; }
+    .nav-brand span { color: var(--accent); }
+    .nav-menu { display: flex; align-items: center; gap: 2rem; }
+    .nav-menu-link { color: var(--white); text-decoration: none; font-size: 0.8rem; letter-spacing: 1.5px; text-transform: uppercase; transition: color 0.2s; }
+    .nav-menu-link:hover { color: var(--accent); }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .nav-user { font-size: 0.85rem; color: var(--accent); font-weight: 500; letter-spacing: 1px; }
+    .btn-nav { padding: 0.5rem 1.4rem; border: 1px solid var(--white); background: transparent; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 0.8rem; letter-spacing: 1.5px; text-transform: uppercase; text-decoration: none; transition: all 0.2s; }
+    .btn-nav:hover { background: var(--white); color: var(--black); }
+    .btn-nav-accent { border-color: var(--accent); color: var(--accent); }
+    .btn-nav-accent:hover { background: var(--accent); color: var(--black); }
+
+    .page-wrap { max-width: 800px; margin: 0 auto; padding: 10rem 4rem 6rem; }
+
+    .page-label { font-size: 0.7rem; letter-spacing: 4px; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem; }
+    .page-title { font-family: 'Oswald', sans-serif; font-size: clamp(3rem, 7vw, 5rem); letter-spacing: 2px; line-height: 1; margin-bottom: 0.4rem; }
+    .page-title span { color: var(--accent); }
+    .page-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 3rem; }
+
+    .alert { padding: 0.9rem 1.2rem; font-size: 0.85rem; margin-bottom: 1.5rem; letter-spacing: 0.5px; }
+    .alert-success { background: rgba(232,255,0,0.06); border: 1px solid var(--accent); color: var(--accent); }
+    .alert-error   { background: rgba(255,45,45,0.06);  border: 1px solid var(--red);    color: var(--red); }
+
+    .form-card { background: var(--gray); border: 1px solid var(--gray2); padding: 3rem; }
+
+    .form-section-title {
+      font-family: 'Oswald', sans-serif; font-size: 1.2rem; letter-spacing: 2px;
+      color: var(--accent); margin-bottom: 1.5rem; padding-bottom: 0.8rem;
+      border-bottom: 1px solid var(--gray2);
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group:last-of-type { margin-bottom: 0; }
+
+    label { display: block; font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+
+    input[type="text"], input[type="email"], input[type="tel"] {
+      width: 100%; padding: 0.85rem 1rem;
+      background: var(--black); border: 1px solid var(--gray2);
+      color: var(--white); font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem; outline: none; transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--accent); }
+    input:disabled { color: #444; cursor: not-allowed; background: #0d0d0d; }
+
+    .action-row { display: flex; gap: 1rem; margin-top: 2rem; }
+
+    .btn-save {
+      padding: 0.85rem 2.5rem; background: var(--accent); color: var(--black);
+      border: none; font-family: 'DM Sans', sans-serif; font-weight: 500;
+      font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-save:hover { background: var(--white); }
+
+    .btn-cancel {
+      padding: 0.85rem 2.5rem; background: transparent;
+      border: 1px solid var(--gray2); color: var(--muted);
+      font-family: 'DM Sans', sans-serif; font-size: 0.8rem;
+      letter-spacing: 2px; text-transform: uppercase;
+      text-decoration: none; display: inline-block; transition: all 0.2s;
+    }
+    .btn-cancel:hover { border-color: var(--white); color: var(--white); }
+
+    footer { padding: 4rem; border-top: 1px solid var(--gray2); display: flex; align-items: center; justify-content: space-between; margin-top: 6rem; }
+    .footer-brand { font-family: 'Oswald', sans-serif; font-size: 1.4rem; letter-spacing: 3px; }
+    .footer-brand span { color: var(--accent); }
+    .footer-copy { font-size: 0.75rem; color: var(--muted); letter-spacing: 1px; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="/">CINE<span>MA</span></a>
+  <div class="nav-menu">
+    <a href="/" class="nav-menu-link">Trang chủ</a>
+    <a href="/movies" class="nav-menu-link">Phim</a>
+    <a href="/booking" class="nav-menu-link">Đặt vé</a>
+  </div>
+  <div class="nav-right">
+    <div sec:authorize="hasRole('ADMIN')" style="display:flex;align-items:center;gap:1rem;">
+      <span class="nav-user" sec:authentication="name"></span>
+      <a href="/admin" class="btn-nav" style="border-color:#ff2d2d;color:#ff2d2d;">⚙ Admin</a>
+      <a href="/logout" class="btn-nav btn-nav-accent">Đăng xuất</a>
+    </div>
+    <div sec:authorize="hasRole('CUSTOMER')" style="display:flex;align-items:center;gap:1rem;">
+      <span class="nav-user" sec:authentication="name"></span>
+      <a href="/profile" class="btn-nav btn-nav-accent">Tài khoản</a>
+      <a href="/logout" class="btn-nav btn-nav-accent">Đăng xuất</a>
+    </div>
+    <div sec:authorize="isAnonymous()" style="display:flex;gap:1rem;">
+      <a href="/login" class="btn-nav">Đăng nhập</a>
+      <a href="/register" class="btn-nav btn-nav-accent">Đăng ký</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+  <p class="page-label">Tài khoản cá nhân</p>
+  <h1 class="page-title">CHỈNH SỬA <span>THÔNG TIN</span></h1>
+  <p class="page-sub">Cập nhật thông tin cá nhân của bạn</p>
+
+  <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+  <div class="alert alert-error"   th:if="${error}"   th:text="${error}"></div>
+
+  <div class="form-card">
+    <div class="form-section-title">THÔNG TIN CÁ NHÂN</div>
+
+    <form th:action="@{/profile/update}" method="post">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Họ và tên *</label>
+          <input type="text" name="fullName"
+                 th:value="${user.fullName}"
+                 placeholder="Nguyễn Văn A" required/>
+        </div>
+        <div class="form-group">
+          <label>Số điện thoại</label>
+          <input type="tel" name="phone"
+                 th:value="${user.phone}"
+                 placeholder="0912 345 678"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email (không thể thay đổi)</label>
+        <input type="email" th:value="${user.email}" disabled/>
+      </div>
+
+      <div class="action-row">
+        <button type="submit" class="btn-save">✔ Lưu thay đổi</button>
+        <a href="/profile" class="btn-cancel">← Hủy</a>
+      </div>
+    </form>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-brand">CINE<span>MA</span></div>
+  <div class="footer-copy">© 2026 Cinema Booking System. All rights reserved.</div>
+</footer>
+
+</body>
+</html>
